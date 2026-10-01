@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4 main-content-wrapper">
+    <!-- Mobile Sidebar -->
+    {% include 'core/_mobile_student_offcanvas.html' %}
+
+    <div class="row align-items-center mb-4">
+        <div class="col d-flex align-items-center">
+            <button class="btn btn-outline-primary d-md-none me-2" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#studentSidebarMenu" aria-controls="studentSidebarMenu">
+                <i class="bi bi-list fs-5"></i>
+            </button>
+            <div>
+                <!-- Manually broken line to prevent auto-formatter from splitting inside the tag -->
+                <h1 class="dashboard-welcome-title">
+                    Welcome, {{ user.get_full_name|default:user.username }}
+                </h1>
+                <p class="text-secondary mb-0 dashboard-welcome-subtitle">
+                    {% if user.is_faculty %}Faculty{% else %}Student{% endif %} Dashboard
+                </p>
+            </div>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'my_complaints' %}" class="btn btn-outline-primary rounded-pill support-btn">
+                <i class="bi bi-chat-dots me-2"></i>Support Inbox
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar Navigation -->
+        <div class="col-md-3 d-none d-md-block">
+            {% include 'core/_student_sidebar.html' %}
+        </div>
+
+        <!-- Main Content: Active Tickets -->
+        <div class="col-md-9">
+            <h4 class="fw-bold mb-4 section-title"><i class="bi bi-ticket-perforated text-primary me-2"></i>Your Active
+                Tickets</h4>
+
+            <div class="row g-4">
+                {% for booking in active_bookings %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="ticket shadow-sm ticket-card"
+                        style="background: white; border-radius: 15px; overflow: hidden; position: relative;">
+                        <!-- Top part -->
+                        <div class="p-3 fs-5 fw-bold ticket-header text-white text-center"
+                            style="background-color: #0d2b5b;">
+                            {% if booking.booking_type == 'SEAT' %}
+                            SEAT #{{ booking.seat_number }}
+                            {% else %}
+                            STANDBY SLOT
+                            {% endif %}
+                        </div>
+
+                        <!-- Status Badge for Completed Trips -->
+                        {% if booking.trip.status == 'COMPLETED' %}
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <span class="badge"
+                                style="background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);">COMPLETED</span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Middle part -->
+                        <div class="p-3 border-bottom dashed ticket-body">
+                            <div class="text-center mb-3">
+                                <span class="badge bg-light text-primary border shadow-sm">
+                                    <i class="bi bi-signpost-split me-1"></i>
+                                    {% if booking.trip.schedule %}
+                                    {{ booking.trip.schedule.route.name }}
+                                    {% else %}
+                                    Special Trip
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="row g-0 align-items-center mb-2">
+                                <div class="col text-start">
+                                    <div class="small text-muted text-uppercase" style="font-size: 0.6rem;">From</div>
+                                    <div class="fw-bold text-dark text-truncate">
+                                        {% if booking.trip.schedule %}
+                                        {{ booking.trip.schedule.route.source }}
+                                        {% else %}
+                                        {{ booking.trip.source }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-2 text-center text-muted">
+                                    <i class="bi bi-arrow-right"></i>
+                                </div>
+                                <div class="col text-end">
+                                    <div class="small text-muted text-uppercase" style="font-size: 0.6rem;">To</div>
+                                    <div class="fw-bold text-dark text-truncate">
+                                        {% if booking.trip.schedule %}
+                                        {{ booking.trip.schedule.route.destination }}
+                                        {% else %}
+                                        {{ booking.trip.destination }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between small">
+                                <span>
+                                    <i class="bi bi-calendar me-1"></i>
+                                    {{ booking.trip.date|date:"D, M d" }}
+                                </span>
+                                <span class="fw-bold">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ booking.trip.departure_time|time:"h:i A" }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Bottom part -->
+                        <div class="p-3 bg-light d-flex justify-content-between align-items-center ticket-footer">
+                            <div class="d-flex flex-column small">
+                                <div class="mb-1">
+                                    <i class="bi bi-bus-front me-2 text-primary"></i>
+                                    <span class="fw-bold">
+                                        {% if booking.trip.bus %}
+                                        {{ booking.trip.bus.bus_number }}
+                                        {% elif booking.trip.schedule.bus %}
+                                        {{ booking.trip.schedule.bus.bus_number }}
+                                        {% else %}
+                                        Bus TBA
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div>
+                                    <i class="bi bi-person-badge me-2 text-dark"></i>
+                                    <span class="small text-muted text-uppercase fw-bold"
+                                        style="font-size: 0.7rem;">Driver:</span>
+                                    <span class="text-dark fw-semibold ms-1">{{ booking.trip.get_driver_name }}</span>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <a href="{% url 'trip_detail' booking.trip.id %}"
+                                    class="btn btn-sm btn-outline-dark px-3">Details</a>
+
+                                <button type="button" class="btn btn-sm btn-outline-danger px-3 ms-1"
+                                    data-bs-toggle="modal" data-bs-target="#cancelModal{{ booking.id }}">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Decorative cutouts handled by CSS -->
+                        <!-- .dashed::before/after -->
+                    </div><!-- End .ticket -->
+                </div><!-- End .col -->
+
+                <!-- Cancel Confirmation Modal (Placed outside .ticket to prevent Bootstrap clipping) -->
+                <div class="modal fade" id="cancelModal{{ booking.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title fw-bold text-danger">Cancel Booking?</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body py-4 text-center">
+                                <div class="mb-3">
+                                    <i class="bi bi-exclamation-circle text-warning" style="font-size: 3.5rem;"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">Confirm Cancellation</h5>
+                                <p class="text-secondary mb-0">Are you sure you want to cancel your seat for <br>
+                                    <span class="fw-bold text-dark">{{ booking.trip.date|date:"l, M d" }}</span>?
+                                </p>
+                            </div>
+                            <div class="modal-footer border-0 pt-0 pb-4 justify-content-center">
+                                <button type="button" class="btn btn-light rounded-pill px-4 me-2"
+                                    data-bs-dismiss="modal">Go Back</button>
+                                <form action="{% url 'cancel_booking' booking.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                        class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold">Cancel
+                                        Ticket</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+                        <i class="bi bi-ticket-perforated fs-1 text-muted opacity-25 d-block mb-3"></i>
+                        <p class="text-secondary mb-3">No active bookings found.</p>
+                        <a href="{% url 'my_bookings' %}" class="btn btn-sm btn-outline-primary rounded-pill">View
+                            History</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Styles to avoid long HTML lines */
+    .dashboard-welcome-title {
+        font-weight: 800;
+        color: #212529;
+        font-size: 1.75rem;
+        line-height: 1.2;
+        letter-spacing: -0.5px;
+    }
+
+    .ticket-card {
+        border: none;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .ticket-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    .ticket-header {
+        background: linear-gradient(135deg, #5C33FF 0%, #4521CC 100%);
+        padding: 1.25rem !important;
+        position: relative;
+    }
+
+    /* Perforation Effect */
+    .dashed {
+        position: relative;
+        border-bottom: 2px dashed #e9ecef !important;
+    }
+
+    .dashed::before,
+    .dashed::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        width: 20px;
+        height: 20px;
+        background-color: #f8f9fa;
+        /* Match body bg */
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+        /* Optional for depth */
+        z-index: 2;
+    }
+
+    .dashed::before {
+        left: -10px;
+    }
+
+    .dashed::after {
+        right: -10px;
+    }
+
+    .ticket-body {
+        padding: 1.5rem !important;
+    }
+
+    .ticket-footer {
+        background-color: #f8f9fb;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 767.98px) {
+        .dashboard-welcome-title {
+            font-size: 1.25rem !important;
+        }
+
+        .dashboard-welcome-subtitle {
+            font-size: 0.875rem !important;
+        }
+
+        .section-title {
+            font-size: 1.1rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        /* Adjust perforation for mobile if needed */
+        .dashed::before,
+        .dashed::after {
+            background-color: #f8f9fa;
+            /* Ensure matches mobile bg */
+        }
+    }
+</style>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}

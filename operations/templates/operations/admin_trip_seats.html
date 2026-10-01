@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="list-group border shadow-sm rounded-3 overflow-hidden">
+            <a href="{% url 'admin_dashboard' %}" class="list-group-item list-group-item-action py-3">
+                Overview
+            </a>
+            <a href="{% url 'bus_list' %}" class="list-group-item list-group-item-action py-3">
+                Manage Buses
+            </a>
+            <a href="{% url 'driver_list' %}" class="list-group-item list-group-item-action py-3">
+                Manage Drivers
+            </a>
+            <a href="{% url 'inspector_list' %}" class="list-group-item list-group-item-action py-3">
+                Manage Inspectors
+            </a>
+            <a href="{% url 'route_list' %}" class="list-group-item list-group-item-action py-3">
+                Manage Routes
+            </a>
+            <a href="{% url 'schedule_list' %}" class="list-group-item list-group-item-action py-3">
+                Manage Schedules
+            </a>
+            <a href="{% url 'trip_list' %}" class="list-group-item list-group-item-action py-3">
+                Manage Trips
+            </a>
+            <a href="{% url 'inspection_list' %}" class="list-group-item list-group-item-action py-3">
+                Inspections
+            </a>
+            <a href="{% url 'map_view' %}" class="list-group-item list-group-item-action py-3">
+                GPS Tracking
+            </a>
+            <a href="{% url 'seat_management' %}" class="list-group-item list-group-item-action active py-3">
+                Seat Management
+            </a>
+            <a href="{% url 'site_settings' %}" class="list-group-item list-group-item-action py-3">
+                Site Configuration
+            </a>
+            <a href="{% url 'admin_complaint_list' %}" class="list-group-item list-group-item-action py-3">
+                Messages & Complaints
+            </a>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-primary mb-0">Seat Information</h2>
+            <a href="{% url 'seat_management' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-1"></i> Back
+            </a>
+        </div>
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4 bg-light">
+                <div class="row g-3">
+                    <div class="col-md-6 text-center border-end">
+                        <h5 class="fw-bold text-dark">
+                            {{ trip.schedule.route.name }}
+                        </h5>
+                        <div class="text-muted">
+                            <i class="bi bi-calendar-event me-2"></i>
+                            {{ trip.date|date:"F d, Y" }}
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <div class="text-muted mb-1">Bus Number</div>
+                        <div class="h4 fw-bold text-primary mb-0">
+                            {% if trip.bus %}
+                            {{ trip.bus.bus_number }}
+                            {% elif trip.schedule and trip.schedule.bus %}
+                            {{ trip.schedule.bus.bus_number }}
+                            {% else %}
+                            <span class="text-danger">No Bus Assigned</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bus-container bg-white p-5 border rounded-5 shadow-sm mb-5 mx-auto" style="max-width: 500px;">
+            <div class="text-center mb-5">
+                <div class="badge bg-secondary bg-opacity-10 text-uppercase p-2 text-dark px-4 rounded-pill"
+                    style="letter-spacing: 2px; font-size: 0.7rem;">
+                    <i class="bi bi-steering me-2"></i>DRIVER SIDE
+                </div>
+            </div>
+            <div class="seat-grid d-flex flex-wrap justify-content-center gap-3">
+                {% for s in seats %}
+                <div class="seat-item" data-bs-toggle="tooltip"
+                    title="{% if s.booking %}Booked by {{ s.booking.user.username }}{% else %}Available{% endif %}">
+                    <div class="seat-visual d-flex align-items-center justify-content-center fw-bold shadow-sm
+{% if s.booking %}bg-danger text-white{% else %}bg-success bg-opacity-10 text-success border border-success{% endif %}"
+                        style="width: 50px; height: 50px; border-radius: 12px; font-size: 1rem; position: relative;">
+                        {{ s.number }}
+                        {% if s.booking %}
+                        <div class="position-absolute bottom-0 start-50 translate-middle-x mb-1"
+                            style="font-size: 0.5rem; width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ s.booking.user.username }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if forloop.counter|divisibleby:4 and not forloop.last %}
+                <div class="w-100 py-1"></div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% if standby_bookings %}
+        <h5 class="text-dark fw-bold mb-3">Standby Passengers ({{ standby_bookings|length }})</h5>
+        <div class="row g-2">
+            {% for b in standby_bookings %}
+            <div class="col-md-4">
+                <div class="card p-3 shadow-sm border-0 bg-light">
+                    <div class="fw-bold">{{ b.user.get_full_name|default:b.user.username }}</div>
+                    <small class="text-muted">@{{ b.user.username }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+<style>
+    .list-group-item.active {
+        background-color: #007bff !important;
+        color: #fff !important;
+    }
+
+    .bus-container {
+        background-image: linear-gradient(to bottom, #fdfdfd, #f8f9fa);
+        max-width: 600px;
+    }
+
+    .seat-visual {
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+
+    .seat-visual:hover {
+        transform: translateY(-5px);
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+{% endblock %}

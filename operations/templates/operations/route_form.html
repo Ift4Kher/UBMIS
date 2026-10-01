@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">{{ title }}</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <h5 class="mb-3">Route Details</h5>
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Route Stops (Sequence)</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-stop">
+                            <i class="bi bi-plus-lg"></i> Add Stop
+                        </button>
+                    </div>
+
+                    {{ formset.management_form }}
+                    <div id="stop-forms-container">
+                        {% for stop_form in formset %}
+                        <div class="row mb-2 stop-row align-items-end g-2">
+                            {% for hidden in stop_form.hidden_fields %}
+                            {{ hidden }}
+                            {% endfor %}
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">Stop Name</label>
+                                {{ stop_form.stop_name }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1">Order</label>
+                                {{ stop_form.order }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Offset (Min)</label>
+                                {{ stop_form.arrival_time_offset }}
+                            </div>
+                            <div class="col-md-1 text-end">
+                                {% if formset.can_delete %}
+                                <div class="form-check d-none">
+                                    {{ stop_form.DELETE }}
+                                </div>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-row" title="Remove">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Empty Form Template for Cloning -->
+                    <div id="empty-form" class="d-none">
+                        <div class="row mb-2 stop-row align-items-end g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">Stop Name</label>
+                                {{ formset.empty_form.stop_name }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1">Order</label>
+                                {{ formset.empty_form.order }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">Offset (Min)</label>
+                                {{ formset.empty_form.arrival_time_offset }}
+                            </div>
+                            <div class="col-md-1 text-end">
+                                <div class="form-check d-none">
+                                    {{ formset.empty_form.DELETE }}
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-row" title="Remove">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'route_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Save Route</button>
+                    </div>
+                </form>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const container = document.getElementById('stop-forms-container');
+                        const addBtn = document.getElementById('add-stop');
+                        const totalForms = document.getElementById('id_routestop_set-TOTAL_FORMS');
+                        const emptyFormHtml = document.getElementById('empty-form').innerHTML;
+
+                        // Function to update row indices
+                        function updateIndices() {
+                            const rows = container.getElementsByClassName('stop-row');
+                            for (let i = 0; i < rows.length; i++) {
+                                const row = rows[i];
+                                // Update visible inputs
+                                const inputs = row.querySelectorAll('input, select');
+                                inputs.forEach(input => {
+                                    if (input.name) {
+                                        input.name = input.name.replace(/-\d+-/, `-${i}-`);
+                                        input.id = input.id.replace(/-\d+-/, `-${i}-`);
+                                    }
+                                });
+                            }
+                        }
+
+                        // Add new row
+                        addBtn.addEventListener('click', function () {
+                            const formIdx = parseInt(totalForms.value);
+                            const newRowHtml = emptyFormHtml.replace(/__prefix__/g, formIdx);
+
+                            const newRow = document.createElement('div');
+                            newRow.innerHTML = newRowHtml;
+                            const actualRow = newRow.firstElementChild; // Extract the row div
+
+                            container.appendChild(actualRow);
+
+                            // Auto-set order
+                            const orderInput = actualRow.querySelector('input[name$="-order"]');
+                            if (orderInput) orderInput.value = formIdx + 1;
+
+                            totalForms.value = formIdx + 1;
+                        });
+
+                        // Remove row
+                        container.addEventListener('click', function (e) {
+                            if (e.target.closest('.remove-row')) {
+                                const row = e.target.closest('.stop-row');
+                                // If it's an existing row (has ID), mark for deletion
+                                const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+                                if (deleteCheckbox) {
+                                    deleteCheckbox.checked = true;
+                                    row.style.display = 'none';
+                                } else {
+                                    // If it's a new dynamic row, just remove it
+                                    row.remove();
+                                    // Optionally update TOTAL_FORMS if specific behavior allows, 
+                                    // but Django formsets usually expect TOTAL_FORMS to only increase or stay consistent with posted data.
+                                    // For simplicity in JS, we often just hide or mark DELETE. 
+                                    // But for properly removed DOM elements:
+                                    // const forms = document.querySelectorAll('#stop-forms-container .stop-row');
+                                    // totalForms.value = forms.length; 
+                                    // NOTE: updating indices is tricky with mix of new/old. 
+                                    // Safer to just hide and check DELETE for existing. 
+                                    // For purely new rows, we can remove and decrement totalForms IF it was the last one, 
+                                    // but usually easier to toggle DELETE.
+                                }
+                            }
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

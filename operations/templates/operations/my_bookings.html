@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h2 class="mb-3">My Bookings</h2>
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Route</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Seat</th>
+                        <th>Status</th>
+                        <th>Booked At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.trip.schedule.route.name }}</td>
+                        <td>{{ booking.trip.date }}</td>
+                        <td>{{ booking.trip.schedule.departure_time }}</td>
+                        <td class="fw-bold text-primary">
+                            {% if booking.booking_type == 'STANDBY' %}
+                            <span class="badge bg-warning">STANDBY</span>
+                            {% else %}
+                            {{ booking.seat_number|default:"--" }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span
+                                class="badge {% if booking.status == 'CONFIRMED' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ booking.status }}
+                            </span>
+                        </td>
+                        <td>{{ booking.booking_time }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">You have no bookings.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            {% if bookings %}
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                data-bs-target="#deleteHistoryModal">
+                Delete History
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete History Confirmation Modal -->
+<div class="modal fade" id="deleteHistoryModal" tabindex="-1" aria-labelledby="deleteHistoryModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-danger text-white border-0 rounded-top-4">
+                <h5 class="modal-title fw-bold" id="deleteHistoryModalLabel">Clear Booking History?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-0">Are you sure you want to delete all your booking records? This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pb-4">
+                <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <form action="{% url 'delete_history' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger px-4 rounded-pill">Yes, Delete All</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .map-controls {
+        position: absolute;
+        top: 80px;
+        right: 20px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 767.98px) {
+        #map {
+            height: 70vh;
+            /* Adjust height for mobile */
+        }
+
+        .map-controls {
+            top: auto;
+            bottom: 20px;
+            right: 10px;
+            left: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .map-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .map-header .btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mt-4 position-relative">
+    <div class="col-md-12 d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 map-header">
+        <h2 class="mb-2 mb-md-0 fw-bold">Live Bus Map</h2>
+        <div class="d-flex gap-2 w-100 w-md-auto justify-content-between justify-content-md-end">
+            <div id="followControl"
+                class="form-check form-switch bg-light p-2 rounded border px-3 d-flex align-items-center flex-grow-1 flex-md-grow-0 me-2 justify-content-center">
+                <input class="form-check-input me-2" type="checkbox" id="followBusCheck" checked>
+                <label class="form-check-label fw-bold small mb-0" for="followBusCheck">Auto-Center</label>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-primary d-flex align-items-center justify-content-center"
+                onclick="closeTabIfOpened(event)">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div id="map"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    function closeTabIfOpened(event) {
+        // If this tab was opened by another script/page (like the dashboard)
+        if (window.opener && !window.opener.closed) {
+            event.preventDefault();
+            window.close();
+        }
+        // Otherwise, standard behavior (navigate to dashboard URL)
+    }
+
+    var map = L.map('map').setView([23.8103, 90.4125], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var markers = {};
+    var userLocationMarker = null;
+    var hasCenteredOnBus = false;
+
+    // Show user's current location
+    map.locate({ setView: false, watch: true });
+
+    map.on('locationfound', function (e) {
+        if (userLocationMarker) {
+            userLocationMarker.setLatLng(e.latlng);
+        } else {
+            userLocationMarker = L.circleMarker(e.latlng, {
+                radius: 8,
+                fillColor: "#3388ff",
+                color: "#fff",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup("You are here");
+        }
+    });
+
+    function updateLocations() {
+        fetch('{% url "get_bus_locations" %}')
+            .then(response => response.json())
+            .then(data => {
+                data.locations.forEach(bus => {
+                    const popupContent = `
+                        <div class="text-start">
+                            <h6 class="fw-bold mb-1">${bus.bus_number}</h6>
+                            <p class="mb-0 small"><strong>Route:</strong> ${bus.route_name}</p>
+                            <p class="mb-0 small"><strong>Driver:</strong> ${bus.driver_name}</p>
+                            <p class="mb-0 small text-muted">Speed: ${bus.speed} km/h</p>
+                        </div>
+                    `;
+                    if (markers[bus.id]) {
+                        markers[bus.id].setLatLng([bus.lat, bus.lng]);
+                        markers[bus.id].setPopupContent(popupContent);
+                    } else {
+                        var marker = L.marker([bus.lat, bus.lng]).addTo(map)
+                            .bindPopup(popupContent);
+                        markers[bus.id] = marker;
+                    }
+                });
+
+                // Centering / Following Logic
+                const urlParams = new URLSearchParams(window.location.search);
+                const busId = urlParams.get('bus_id');
+                const isFollowEnabled = document.getElementById('followBusCheck') ? document.getElementById('followBusCheck').checked : true;
+
+                if (busId) {
+                    // Search for marker using both integer and string keys
+                    const targetMarker = markers[busId] || markers[parseInt(busId)];
+                    if (targetMarker) {
+                        const latlng = targetMarker.getLatLng();
+                        if (!hasCenteredOnBus) {
+                            map.setView(latlng, 15);
+                            targetMarker.openPopup();
+                            hasCenteredOnBus = true;
+                        } else if (isFollowEnabled) {
+                            map.panTo(latlng);
+                        }
+                    }
+                }
+            });
+    }
+
+    setInterval(updateLocations, 5000);
+    updateLocations();
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <!-- Back Button -->
+        <a href="{% url 'home' %}" class="btn btn-link text-decoration-none text-muted mb-3 p-0">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+
+        <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
+            <!-- Header Section -->
+            <div class="card-header bg-primary text-white p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    {% if trip.is_special %}
+                    <span class="badge bg-white text-dark px-3 py-2 fw-bold shadow-sm">SPECIAL EVENT</span>
+                    {% else %}
+                    <span class="badge bg-white px-3 py-2 fw-bold shadow-sm" style="color: #5C33FF;">REGULAR TRIP</span>
+                    {% endif %}
+                    <span class="fw-bold fs-5 text-white">
+                        <i class="bi bi-calendar-event me-2"></i>{{ trip.date|date:"l, F j, Y" }}
+                    </span>
+                </div>
+                <h1 class="display-5 fw-bold mb-0">
+                    {{ trip.source }}
+                    <i class="bi bi-arrow-right mx-2 opacity-50"></i>
+                    {{ trip.destination }}
+                </h1>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="row g-0">
+                    <!-- Left: Trip Info -->
+                    <div class="col-md-5 bg-light p-4 border-end">
+                        <h5 class="fw-bold mb-4">Trip Details</h5>
+
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold d-block mb-1">Departure Time</label>
+                            <div class="fs-4 fw-bold text-primary">
+                                <i class="bi bi-clock me-2"></i>{{ trip.departure_time|time:"h:i A" }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold d-block mb-1">Route Name</label>
+                            <div class="fs-5 fw-bold text-dark">
+                                <i class="bi bi-signpost-split me-2"></i>{{ route_name }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold d-block mb-1">Assigned Vehicle</label>
+                            <div class="fs-5 fw-bold">
+                                <i class="bi bi-bus-front me-2"></i>
+                                {% if bus %}
+                                {{ bus.name|default:"Main Bus" }}
+                                {% if bus_reg_last_4 %}
+                                <span class="text-muted small fw-normal ms-1">(Reg: ...{{ bus_reg_last_4 }})</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">TBA</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small text-uppercase fw-bold d-block mb-1">Driver In-Charge</label>
+                            <div class="fs-5 fw-bold text-dark">
+                                <i class="bi bi-person-badge me-2"></i>{{ trip.get_driver_name }}
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="text-muted small text-uppercase fw-bold d-block mb-1">Trip Status</label>
+                            <span
+                                class="badge {% if trip.status == 'SCHEDULED' %}bg-warning text-dark{% elif trip.status == 'RUNNING' %}bg-info{% else %}bg-success{% endif %} rounded-pill px-3 py-2">
+                                {{ trip.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Stoppages Timeline -->
+                    <div class="col-md-7 p-4">
+                        <h5 class="fw-bold mb-4">Route Stoppages</h5>
+
+                        <div class="position-relative ms-2">
+                            <!-- Vertical Line -->
+                            <div
+                                style="position: absolute; left: 7px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(to bottom, #0d6efd, #dee2e6);">
+                            </div>
+
+                            {% if trip.trip_stoppages.exists %}
+                            {% for ts in trip.trip_stoppages.all %}
+                            <div class="d-flex mb-4 position-relative" style="z-index: 1;">
+                                <div class="me-4 bg-white rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 16px; height: 16px; border: 3px solid #0d6efd;"></div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">{{ ts.stop.name }}</h6>
+                                    {% if ts.arrival_time %}
+                                    <small class="text-muted">Estimated: {{ ts.arrival_time|time:"h:i A" }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% elif trip.schedule.route.routestop_set.exists %}
+                            {% for rs in trip.schedule.route.routestop_set.all %}
+                            <div class="d-flex mb-4 position-relative" style="z-index: 1;">
+                                <div class="me-4 bg-white rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 16px; height: 16px; border: 3px solid #0d6efd;"></div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">{{ rs.stop.name }}</h6>
+                                    {% if rs.arrival_time %}
+                                    <small class="text-muted">Stop {{ rs.order }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="alert alert-light border text-center py-4">
+                                <i class="bi bi-info-circle d-block fs-3 mb-2 text-muted"></i>
+                                Stoppage details are not yet available for this trip.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="card-footer bg-white p-3 border-top-0 d-flex justify-content-center gap-2">
+                {% if trip.status == 'RUNNING' %}
+                <a href="{% url 'home' %}?track_bus={{ trip.bus.bus_number }}" class="btn btn-danger px-4">
+                    <i class="bi bi-geo-alt-fill me-2"></i>Track Live Location
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-header {
+        background: linear-gradient(135deg, #5C33FF 0%, #4521CC 100%) !important;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 500px;
+        overflow-y: auto;
+        padding: 20px;
+        background-color: #f0f2f5;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-row {
+        display: flex;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+
+    .message-row.sent {
+        justify-content: flex-end;
+    }
+
+    .message-row.received {
+        justify-content: flex-start;
+    }
+
+    .chat-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+    }
+
+    .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #6c757d;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+    }
+
+    .message-bubble {
+        max-width: 70%;
+        padding: 12px 18px;
+        border-radius: 20px;
+        position: relative;
+        font-size: 0.95rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Sent Message Styles */
+    .message-row.sent .message-bubble {
+        background-color: #0d6efd;
+        /* Primary Blue */
+        color: white;
+        border-bottom-right-radius: 5px;
+        margin-right: 10px;
+        /* Space between bubble and avatar */
+    }
+
+    /* Received Message Styles */
+    .message-row.received .message-bubble {
+        background-color: white;
+        color: black;
+        border-bottom-left-radius: 5px;
+        margin-left: 10px;
+        /* Space between bubble and avatar */
+    }
+
+    .sender-name {
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+        opacity: 0.9;
+        font-weight: bold;
+    }
+
+    .message-time {
+        font-size: 0.70rem;
+        text-align: right;
+        margin-top: 4px;
+        opacity: 0.7;
+    }
+
+    /* Modify time color for sent messages to be readable on blue */
+    .message-row.sent .message-time {
+        color: rgba(255, 255, 255, 0.8);
+    }
+</style>
+<script>
+    // Auto-scroll to bottom
+    window.onload = function () {
+        var chatContainer = document.querySelector('.chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-9">
+        <div class="card shadow border-0">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom">
+                <div class="d-flex align-items-center">
+                    <a href="{% if user.is_admin %}{% url 'admin_complaint_list' %}{% else %}{% url 'my_complaints' %}{% endif %}"
+                        class="btn btn-light btn-sm me-3 rounded-circle shadow-sm"
+                        style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;"><i
+                            class="bi bi-arrow-left"></i></a>
+                    <div>
+                        <h5 class="mb-0 fw-bold">{{ complaint.subject }}</h5>
+                        <small class="text-muted">
+                            <span
+                                class="badge {% if complaint.status == 'PENDING' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                {{ complaint.status }}
+                            </span>
+                        </small>
+                    </div>
+                </div>
+                {% if user.is_admin %}
+                <form method="post" action="{% url 'resolve_complaint' complaint.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3">Mark
+                        Resolved</button>
+                </form>
+                {% endif %}
+            </div>
+
+            <div class="card-body p-0">
+                <div class="chat-container">
+
+                    <!-- Helper Variable for Current User -->
+                    {% with current_user=user %}
+
+                    <!-- Original Complaint Message -->
+                    {% with sender=complaint.user message=complaint.message time=complaint.created_at %}
+                    <div class="message-row {% if sender == current_user %}sent{% else %}received{% endif %}">
+
+                        <!-- Avatar (Left for received) -->
+                        {% if sender != current_user %}
+                        {% if sender.profile_picture %}
+                        <img src="{{ sender.profile_picture.url }}" class="chat-avatar" alt="{{ sender.username }}"
+                            title="{{ sender.get_full_name|default:sender.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder" title="{{ sender.get_full_name|default:sender.username }}">
+                            {{ sender.first_name|first|default:sender.username|first|upper }}
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <!-- Message Bubble -->
+                        <div class="message-bubble">
+                            <div class="sender-name">
+                                {% if sender == current_user %}
+                                You
+                                {% else %}
+                                {% if sender.get_full_name %}
+                                {{ sender.get_full_name }}
+                                {% else %}
+                                {{ sender.username }}
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                            <div>{{ message|linebreaksbr }}</div>
+                            <div class="message-time">{{ time|date:"g:i A" }}</div>
+                        </div>
+
+                        <!-- Avatar (Right for sent) -->
+                        {% if sender == current_user %}
+                        {% if sender.profile_picture %}
+                        <img src="{{ sender.profile_picture.url }}" class="chat-avatar" alt="{{ sender.username }}"
+                            title="{{ sender.get_full_name|default:sender.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder" title="{{ sender.get_full_name|default:sender.username }}">
+                            {{ sender.first_name|first|default:sender.username|first|upper }}
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+
+                    <!-- Chat Messages Loop -->
+                    {% for msg in chat_messages %}
+                    {% with sender=msg.sender message=msg.message time=msg.created_at %}
+                    <div class="message-row {% if sender == current_user %}sent{% else %}received{% endif %}">
+
+                        <!-- Avatar (Left for received) -->
+                        {% if sender != current_user %}
+                        {% if sender.profile_picture %}
+                        <img src="{{ sender.profile_picture.url }}" class="chat-avatar" alt="{{ sender.username }}"
+                            title="{{ sender.get_full_name|default:sender.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder" title="{{ sender.get_full_name|default:sender.username }}">
+                            {{ sender.first_name|first|default:sender.username|first|upper }}
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <!-- Message Bubble -->
+                        <div class="message-bubble">
+                            <div class="sender-name">
+                                {% if sender == current_user %}
+                                You
+                                {% else %}
+                                {% if sender.get_full_name %}
+                                {{ sender.get_full_name }}
+                                {% else %}
+                                {{ sender.username }}
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                            <div>{{ message|linebreaksbr }}</div>
+                            <div class="message-time">{{ time|date:"g:i A" }}</div>
+                        </div>
+
+                        <!-- Avatar (Right for sent) -->
+                        {% if sender == current_user %}
+                        {% if sender.profile_picture %}
+                        <img src="{{ sender.profile_picture.url }}" class="chat-avatar" alt="{{ sender.username }}"
+                            title="{{ sender.get_full_name|default:sender.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder" title="{{ sender.get_full_name|default:sender.username }}">
+                            {{ sender.first_name|first|default:sender.username|first|upper }}
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+
+                    {% endwith %}
+                </div>
+
+                <!-- Input Area -->
+                <div class="card-footer bg-light p-3 border-top">
+                    <form method="post" class="d-flex gap-2 align-items-center">
+                        {% csrf_token %}
+                        <input type="text" name="message" class="form-control rounded-pill border-0 shadow-sm p-3"
+                            placeholder="Type a message..." required autocomplete="off">
+                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm"
+                            style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <i class="bi bi-send-fill fs-5"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

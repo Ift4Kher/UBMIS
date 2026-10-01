@@ -1,0 +1,50 @@
+<style>
+    @media (max-width: 991px) {
+        .fixed-mobile-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            padding: 1rem 0 !important;
+            background-color: var(--primary-blue) !important;
+        }
+
+        .fixed-mobile-footer .mb-4 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        .fixed-mobile-footer hr {
+            display: none;
+        }
+
+        /* Automatically applies padding to the container before it */
+        .main-content-wrapper {
+            padding-bottom: 110px !important;
+        }
+    }
+</style>
+
+<footer class="mt-auto py-4 fixed-mobile-footer" style="background-color: var(--primary-blue); color: #fff;">
+    <div class="container-fluid px-lg-5">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <span class="h5 mb-0 fw-bold">EASTERN UNIVERSITY</span>
+                </div>
+                <small class="d-block text-white-50 mt-1" style="font-size: 0.7rem;">Leader in Quality
+                    Education</small>
+            </div>
+        </div>
+
+        <hr style="border-color: rgba(255,255,255,0.1);">
+
+        <div class="row align-items-center">
+            <div class="col-md-6 text-md-start text-center">
+                <small style="color: #e2e8f0; font-size: 0.8rem;">
+                    &copy; Copyright 2026, All Rights Reserved by Eastern University
+                </small>
+            </div>
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - UBMIS</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-teal: #0d6efd;
+            --accent-blue: #0d6efd;
+            --text-muted: #6c757d;
+        }
+
+        body,
+        html {
+            min-height: 100vh;
+            width: 100vw;
+            max-width: 100vw;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .auth-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('{% if site_settings.auth_image %}{{ site_settings.auth_image.url }}{% else %}https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=2079&auto=format&fit=crop{% endif %}') no-repeat center center;
+            background-size: cover;
+            /* filter: brightness(0.6); */
+            z-index: -1;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 1000px;
+            min-height: 700px;
+            background: #fff;
+            border-radius: 2rem;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-left {
+            flex: 1;
+            background: url('{% if site_settings.auth_image %}{{ site_settings.auth_image.url }}{% else %}https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80{% endif %}');
+            background-size: cover;
+            background-position: center;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: #fff;
+            position: relative;
+        }
+
+        .auth-left .logo {
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .auth-left .content h1 {
+            font-weight: 800;
+            font-size: 2.2rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .auth-left .content p {
+            font-size: 1rem;
+            opacity: 0.8;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+
+        .auth-left .bird-icon {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 4rem;
+            opacity: 0.6;
+        }
+
+        .auth-right {
+            flex: 1;
+            padding: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+
+        .auth-form-container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .auth-header h2 {
+            font-weight: 800;
+            font-size: 2rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #444;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            padding: 0.6rem 0.9rem;
+            border-radius: 0.6rem;
+            border: 1px solid #dee2e6;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(16, 59, 65, 0.1);
+            border-color: var(--primary-teal);
+        }
+
+        .btn-signup {
+            background-color: var(--primary-teal);
+            border: none;
+            color: #fff;
+            padding: 0.8rem;
+            font-weight: 700;
+            border-radius: 0.6rem;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+
+        .btn-signup:hover {
+            background-color: #0c2b30;
+            transform: translateY(-1px);
+        }
+
+        .form-text {
+            font-size: 0.75rem;
+        }
+
+        .login-link {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary-teal);
+            text-decoration: none;
+        }
+
+        .top-left-logo {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+            background: #fff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-left-logo img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .top-left-logo .site-name {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--primary-teal);
+            text-transform: uppercase;
+            margin-top: 0.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 991px) {
+            .auth-left {
+                display: none;
+            }
+
+            .auth-card {
+                max-width: 500px;
+                border-radius: 1.5rem;
+                margin: 20px 15px;
+                min-height: auto;
+                overflow: hidden;
+            }
+
+            .auth-right {
+                padding: 2rem 1.5rem;
+            }
+
+            .auth-header h2 {
+                font-size: 1.75rem;
+            }
+
+            .top-left-logo {
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                transform: none;
+                padding: 0.6rem;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                z-index: 101;
+            }
+
+            .top-left-logo img {
+                height: 30px;
+            }
+
+            .top-left-logo .site-name {
+                font-size: 0.55rem;
+                margin-top: 0.2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .auth-card {
+                margin: 20px 10px 15px;
+                border-radius: 1rem;
+                overflow: hidden;
+            }
+
+            .auth-right {
+                padding: 1.5rem 1rem;
+            }
+
+            .auth-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .auth-header p {
+                margin-bottom: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-left-logo">
+        {% if site_settings.site_logo %}
+        <img src="{{ site_settings.site_logo.url }}" alt="Logo">
+        {% else %}
+        <div style="font-weight: 800; color: var(--primary-teal); font-size: 0.8rem;">LOGO</div>
+        {% endif %}
+        <div class="site-name">Eastern University</div>
+    </div>
+    <div class="auth-bg"></div>
+    <div class="auth-card">
+        <!-- Left Side: Branding -->
+        <div class="auth-left">
+            <div class="content">
+                <h1>Join Our<br>Community<br>Today!</h1>
+            </div>
+        </div>
+
+        <!-- Right Side: Form -->
+        <div class="auth-right">
+            <div class="auth-form-container">
+                <div class="auth-header">
+                    <h2>Create Account</h2>
+                    <p>Enter your details below to get started.</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div
+                            class="{% if 'First' in field.label or 'Last' in field.label %}col-6{% else %}col-12{% endif %}">
+                            <label for="{{ field.id_for_label }}" class="form-label text-truncate w-100">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <div class="form-text text-muted">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-signup">Create Account</button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-secondary small">Already have an account? <a href="{% url 'login' %}"
+                                class="login-link">Sign in</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add Bootstrap classes to Django form fields
+            const formFields = document.querySelectorAll('input, select, textarea');
+            formFields.forEach(field => {
+                if (!field.classList.contains('form-check-input')) {
+                    field.classList.add('form-control');
+                }
+            });
+
+            // Password visibility toggle logic
+            const passwordInputs = document.querySelectorAll('input[type="password"]');
+            passwordInputs.forEach(function (input) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'input-group';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                input.style.borderRight = '0';
+
+                const button = document.createElement('button');
+                button.className = 'btn btn-outline-secondary bg-white border-start-0 text-muted';
+                button.type = 'button';
+                button.style.borderColor = '#dee2e6';
+                button.innerHTML = '<i class="bi bi-eye"></i>';
+
+                button.addEventListener('click', function () {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                });
+
+                wrapper.appendChild(button);
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-4 main-content-wrapper">
+    <div class="row g-4">
+        <!-- Mobile Sidebar -->
+        {% include 'core/_mobile_inspector_offcanvas.html' %}
+
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 d-none d-lg-block">
+            {% include 'core/_inspector_sidebar.html' %}
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#inspectorSidebarMenu" aria-controls="inspectorSidebarMenu">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <h2 class="fw-bold mb-0">Inspector Dashboard</h2>
+                </div>
+                <span class="text-muted small">Access Level: {{ user.get_role_display }}</span>
+            </div>
+
+            <div class="row g-4">
+                <!-- Action Tile -->
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm h-100 rounded-4 hover-lift">
+                        <div class="card-body p-5 text-center">
+                            <div class="btn btn-primary rounded-circle p-4 mb-4 shadow-sm">
+                                <i class="bi bi-clipboard-check fs-1"></i>
+                            </div>
+                            <h2 class="fw-bold mb-3">New Inspection Form</h2>
+                            <p class="text-muted fs-5 mb-4">Perform a fresh vehicle safety check using the official
+                                evaluation
+                                model.</p>
+                            <a href="{% url 'inspection_create' %}"
+                                class="btn btn-primary px-5 py-3 rounded-pill fw-bold fs-5 shadow">
+                                Start Evaluation
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help Alert -->
+                <div class="col-12 mt-4">
+                    <div class="alert alert-info border-0 shadow-sm rounded-4 p-4 d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill fs-3 me-4"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Standard Operating Procedure (SOP)</h6>
+                            <p class="mb-0 small">Please ensure you have photographic evidence for every failed
+                                inspection item. Critical field failures will automatically revoke a bus's
+                                operational
+                                status.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}

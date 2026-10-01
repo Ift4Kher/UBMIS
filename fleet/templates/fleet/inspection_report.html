@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .report-container {
+        background: white;
+        padding: 3rem;
+        border-radius: 0;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ddd;
+        position: relative;
+    }
+
+    .report-header {
+        border-bottom: 3px solid #333;
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 8rem;
+        font-weight: 900;
+        opacity: 0.05;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .report-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .report-section-title {
+        background: #f8f9fa;
+        padding: 8px 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-left: 4px solid #333;
+        margin-bottom: 1rem;
+    }
+
+    .result-card {
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .result-pass {
+        background: #d1e7dd;
+        border: 2px solid #0f5132;
+        color: #0f5132;
+    }
+
+    .result-fail {
+        background: #f8d7da;
+        border: 2px solid #842029;
+        color: #842029;
+    }
+
+    @media print {
+        .no-print {
+            display: none;
+        }
+
+        .report-container {
+            box-shadow: none;
+            border: none;
+            padding: 0;
+        }
+
+        body {
+            background: white;
+        }
+    }
+
+    .check-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .check-item:last-child {
+        border-bottom: none;
+    }
+
+    .badge-pass {
+        background: #d1e7dd;
+        color: #0f5132;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+    }
+
+    .badge-fail {
+        background: #f8d7da;
+        color: #842029;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <a href="{% url 'inspection_list' %}" class="btn btn-outline-secondary"><i
+                class="bi bi-arrow-left me-2"></i>Back to List</a>
+        <button onclick="window.print()" class="btn btn-primary px-4"><i class="bi bi-printer me-2"></i>Print
+            Report</button>
+    </div>
+
+    <div class="report-container mx-auto" style="max-width: 900px;">
+        <div class="watermark">{{ inspection.score_percentage }}%</div>
+
+        <div class="report-header d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="fw-bold mb-0">BUS INSPECTION REPORT</h1>
+                <p class="text-muted mb-0">Transport Management & Safety Authority</p>
+                <p class="small text-muted">Verification ID: #INS-{{ inspection.id|stringformat:"06d" }}</p>
+            </div>
+            <div class="text-end">
+                <div
+                    class="result-card {% if inspection.overall_status == 'PASS' %}result-pass{% else %}result-fail{% endif %} p-3">
+                    <h4 class="mb-0 fw-bold">SCORE: {{ inspection.score_percentage }}%</h4>
+                    <p class="small mb-0">OVERALL STATUS</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <div class="report-section">
+                    <div class="report-section-title">Bus Identification</div>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td class="text-muted" style="width: 150px;">Registration #</td>
+                            <td class="fw-bold">{{ inspection.bus.bus_number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Bus Name</td>
+                            <td class="fw-bold">{{ inspection.bus.name|default:"--" }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Type</td>
+                            <td class="fw-bold">{{ inspection.bus.get_bus_type_display }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="report-section">
+                    <div class="report-section-title">Inspection Context</div>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td class="text-muted" style="width: 150px;">Inspector Name</td>
+                            <td class="fw-bold">{{ inspector_name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Location</td>
+                            <td class="fw-bold">{{ inspection.location }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Date & Time</td>
+                            <td class="fw-bold">{{ inspection.inspection_date|date:"d M Y, h:i A" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <div class="report-section-title">Detailed Evaluation Summary</div>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <h6 class="fw-bold border-bottom pb-1 mb-3">Documents & Mechanical</h6>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body p-0">
+                            <!-- Documents & Mechanical Items -->
+                            <div class="check-item">
+                                <span class="small">Registration Certificate</span>
+                                {% if inspection.doc_registration %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Route Permit</span>
+                                {% if inspection.doc_route_permit %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Insurance</span>
+                                {% if inspection.doc_insurance %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Fitness Certificate <span class="text-danger fw-bold"
+                                        style="font-size: 0.6rem;">[CRITICAL]</span></span>
+                                {% if inspection.doc_fitness %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Engine Condition</span>
+                                {% if inspection.mech_engine %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Brake System <span class="text-danger fw-bold"
+                                        style="font-size: 0.6rem;">[CRITICAL]</span></span>
+                                {% if inspection.mech_brake %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Steering System <span class="text-danger fw-bold"
+                                        style="font-size: 0.6rem;">[CRITICAL]</span></span>
+                                {% if inspection.mech_steering %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="fw-bold border-bottom pb-1 mb-3">Safety & Interior</h6>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body p-0">
+                            <!-- Safety & Interior Items -->
+                            <div class="check-item">
+                                <span class="small">Fire Extinguisher <span class="text-danger fw-bold"
+                                        style="font-size: 0.6rem;">[CRITICAL]</span></span>
+                                {% if inspection.safe_fire_extinguisher %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Emergency Exit <span class="text-danger fw-bold"
+                                        style="font-size: 0.6rem;">[CRITICAL]</span></span>
+                                {% if inspection.safe_emergency_exit %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Tyres Condition</span>
+                                {% if inspection.body_tyres %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Doors & Handrails</span>
+                                {% if inspection.int_doors %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                            <div class="check-item">
+                                <span class="small">Emission Check</span>
+                                {% if inspection.env_smoke %}
+                                <span class="badge-pass small">PASS</span>
+                                {% else %}
+                                <span class="badge-fail small">FAIL</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section mt-5">
+            <div class="report-section-title">Remarks & Evidence</div>
+            <div class="bg-light p-3 rounded-2 border mb-3">
+                <p class="mb-0"><strong>Inspector Remarks:</strong></p>
+                <p class="mb-0 fst-italic">{{ inspection.remarks|default:"No remarks provided." }}</p>
+            </div>
+            {% if inspection.photo_evidence %}
+            <div class="text-center mt-3">
+                <p class="small text-muted mb-2">Attached Evidence Material:</p>
+                <img src="{{ inspection.photo_evidence.url }}" class="img-fluid rounded border shadow-sm"
+                    style="max-height: 300px;">
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mt-5 pt-5 row">
+            <div class="col-6 text-center">
+                <div class="mx-auto border-bottom" style="width: 200px;"></div>
+                <p class="small mt-1">Bus Representative Signature</p>
+            </div>
+            <div class="col-6 text-center">
+                <div class="mx-auto border-bottom"
+                    style="width: 200px; font-family: 'Courier New', Courier, monospace;">
+                    {{ inspector_name }}
+                </div>
+                <p class="small mt-1">Digital Authorized Signature</p>
+            </div>
+        </div>
+
+        <div class="mt-5 pt-3 border-top text-center text-muted small">
+            This is a computer-generated document. System Hash: {{ inspection.id|add:12345|stringformat:"x" }}
+        </div>
+    </div>
+</div>
+{% endblock %}

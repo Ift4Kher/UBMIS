@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">Confirm Deletion</div>
+            <div class="card-body">
+                <p>Are you sure you want to delete the {{ type }} <strong>{{ object }}</strong>?</p>
+                <div class="alert alert-warning">
+                    This action cannot be undone. All associated data will be removed.
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

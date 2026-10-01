@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="alert alert-warning">
+        <strong>SAFE DEBUG VIEW ACTIVE</strong>
+    </div>
+
+    <div class="row g-4">
+        {% for trip in trips %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-3 border-primary shadow" style="border-radius: 1.25rem;">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold text-primary">{{ trip.schedule.route.name }}</h3>
+                    <hr>
+                    <p><strong>FROM:</strong> {{ trip.source|default:trip.schedule.route.source }}</p>
+                    <p><strong>TO:</strong> {{ trip.destination|default:trip.schedule.route.destination }}</p>
+                    <p><strong>DEPARTURE:</strong> {{ trip.departure_time|time:"h:i
+                        A"|default:trip.schedule.departure_time|time:"h:i A" }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <h3>No trips found in SAFE VIEW.</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

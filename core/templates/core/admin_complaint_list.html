@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="py-4 main-content-wrapper">
+    <!-- Mobile Sidebar -->
+    {% include 'core/_mobile_offcanvas_sidebar.html' %}
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sticky-top" style="top: 20px;">
+                {% include 'core/_admin_sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-12">
+            <div class="d-flex align-items-center mb-4">
+                <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <h2 class="mb-0">User Complaints & Messages</h2>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Subject</th>
+                                    <th>Message</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for complaint in complaints %}
+                                <tr>
+                                    <td>{{ complaint.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <strong>
+                                            {% if complaint.user.get_full_name %}
+                                            {{ complaint.user.get_full_name }}
+                                            {% else %}
+                                            {{ complaint.user.username }}
+                                            {% endif %}
+                                        </strong><br>
+                                        <small class="text-muted">{{ complaint.user.get_role_display }}</small>
+                                    </td>
+                                    <td>{{ complaint.subject }}</td>
+                                    <td>{{ complaint.message|truncatechars:50 }}</td>
+                                    <td>
+                                        {% if complaint.status == 'PENDING' %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                        {% else %}
+                                        <span class="badge bg-success">Resolved</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="dropdown">
+                                            <button class="btn btn-link text-secondary p-0" type="button"
+                                                data-bs-toggle="dropdown" data-bs-boundary="viewport"
+                                                aria-expanded="false">
+                                                <i class="bi bi-three-dots-vertical fs-5"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                                <li><a class="dropdown-item py-2"
+                                                        href="{% url 'complaint_chat' complaint.pk %}"><i
+                                                            class="bi bi-chat-dots-fill me-2 text-primary"></i> Open
+                                                        Chat</a></li>
+                                                {% if complaint.status == 'RESOLVED' %}
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li><a class="dropdown-item py-2 text-danger"
+                                                        href="{% url 'admin_complaint_delete' complaint.pk %}"><i
+                                                            class="bi bi-trash3 me-2"></i> Delete Complaint</a></li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">No complaints found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}

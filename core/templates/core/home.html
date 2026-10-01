@@ -1,0 +1,707 @@
+﻿{% extends 'base.html' %} {% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* Slider Section */
+    .slider-section {
+        position: relative;
+        width: 100%;
+        height: 650px;
+        overflow: hidden;
+    }
+
+    .carousel-item {
+        height: 650px;
+        background-size: cover;
+        background-position: center;
+        transition: transform 2s ease, opacity 2s ease !important;
+    }
+
+    .overlay {
+        display: none !important;
+        background: transparent !important;
+    }
+
+    .hero-overlay-content {
+        position: absolute;
+        top: 25%;
+        left: 8%;
+        z-index: 10;
+        max-width: 600px;
+        text-align: left;
+    }
+
+    .hero-title {
+        color: #000;
+        font-weight: 800;
+        font-size: 3.5rem;
+        line-height: 1.2;
+        margin-bottom: 0;
+        text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+
+    .hero-divider-bar {
+        width: 100px;
+        height: 8px;
+        background-color: #0088cc;
+        margin-top: 20px;
+        margin-bottom: 25px;
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 5%;
+        opacity: 0.8;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        filter: invert(38%) sepia(95%) saturate(2062%) hue-rotate(186deg) brightness(95%) contrast(101%);
+        width: 3rem;
+        height: 3rem;
+    }
+
+    body {
+        background-color: #f4f6f9;
+    }
+
+    .main-content-wrapper {
+        padding-top: 40px;
+    }
+
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 10px;
+    }
+
+    .glass-card {
+        background: white;
+        border: 1px solid #eee;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+    }
+
+    .bg-soft-primary {
+        background-color: rgba(59, 125, 221, 0.15) !important;
+        color: #3b7ddd !important;
+    }
+
+    @media (max-width: 768px) {
+
+        .slider-section,
+        .carousel-item {
+            height: 400px;
+            /* Reduced height for mobile */
+        }
+
+        .hero-overlay-content {
+            top: 15%;
+            left: 5%;
+            width: 90%;
+            max-width: 100%;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            /* Smaller title */
+        }
+
+        .hero-divider-bar {
+            width: 50px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Video Section Mobile Fix */
+        .video-player {
+            width: 100% !important;
+            height: auto !important;
+            min-height: auto !important;
+            max-height: 400px !important;
+            aspect-ratio: 16 / 9 !important;
+            object-fit: cover !important;
+        }
+
+        .video-full-width-container {
+            width: 100% !important;
+            left: 0 !important;
+            right: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            margin-top: 1rem !important;
+            margin-bottom: 2rem !important;
+            border-radius: 12px !important;
+            /* Add some rounding for better mobile feel */
+        }
+
+        /* General Mobile Sizing Reductions */
+        h2 {
+            font-size: 1.5rem !important;
+            /* Smaller section headers */
+        }
+
+        .fs-1 {
+            font-size: 1.5rem !important;
+        }
+
+        .fs-2 {
+            font-size: 1.25rem !important;
+        }
+
+        /* Icon sizes in How it Works */
+        .bi-person-plus.fs-2,
+        .bi-calendar-check.fs-2,
+        .bi-ticket-perforated.fs-2,
+        .bi-geo-alt.fs-2,
+        .bi-shield-check.fs-2,
+        .bi-headset.fs-2 {
+            font-size: 1.25rem !important;
+        }
+
+        /* Button and Badge Sizing */
+        .btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .glass-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem !important;
+        }
+
+        /* Table Sizing */
+        .table {
+            font-size: 0.8rem;
+        }
+
+        .badge {
+            font-size: 0.7rem !important;
+        }
+
+        /* Search Form Mobile */
+        .input-group-text,
+        .form-control,
+        .btn {
+            font-size: 0.9rem;
+        }
+    }
+
+    .glass-badge {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 50px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        font-size: 0.9rem;
+        color: #1e293b;
+        letter-spacing: 0.3px;
+    }
+
+    .video-full-width-container {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-top: 2rem;
+        margin-bottom: 4rem;
+        overflow: hidden;
+        background: #000;
+        line-height: 0;
+    }
+
+    .video-player {
+        width: 100%;
+        height: auto;
+        min-height: 500px;
+        max-height: 800px;
+        object-fit: cover;
+    }
+</style>
+{% endblock %} {% block content %}
+<div class="slider-section">
+    <div class="hero-overlay-content">
+        <div class="hero-date-wrapper mb-4">
+            <div class="glass-badge py-2 px-4 d-inline-flex align-items-center animate__animated animate__fadeInDown">
+                <i class="bi bi-calendar3 me-2 text-primary">
+                </i> <span id="currentDate" class="fw-bold">
+                </span>
+                <div class="vr mx-3 opacity-25" style="height: 18px;">
+                </div> <i class="bi bi-clock me-2 text-primary">
+                </i> <span id="currentTime" class="fw-bold text-dark" style="min-width: 105px;">
+                </span>
+            </div>
+        </div>
+        <h1 class="hero-title">Free Transport<br>Facility</h1>
+        <div class="hero-divider-bar">
+        </div>
+        <div class="card p-3 shadow-lg mt-4 border-0"
+            style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); max-width: 500px;">
+            <form action="
+{% url 'trip_list' %}
+" method="get" class="row g-2">
+                <div class="col-md-10">
+                    <div class="input-group"> <span class="input-group-text border-0 bg-light">
+                            <i class="bi bi-geo-alt-fill text-primary">
+                            </i>
+                        </span> <input type="text" name="q" class="form-control border-0 bg-light"
+                            placeholder="Search stoppage (e.g. Mirpur, Birulia...)"> </div>
+                </div>
+                <div class="col-md-2"> <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search">
+                        </i>
+                    </button> </div>
+            </form>
+        </div>
+        {% if not user.is_authenticated %} <a href="{% url 'login' %}"
+            class="btn btn-primary btn-lg fw-bold shadow mt-4">Apply Online / Login</a>
+        {% endif %}
+    </div>
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
+            {% for image in slider_images %} <div class="carousel-item {% if forloop.first %}active{% endif %}"
+                style="background-image: url('{{ image.image.url }}');"> </div> {% empty %}
+            <div class="carousel-item active"
+                style="background-image: url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
+            </div>
+            {% endfor %}
+        </div> <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true">
+            </span> </button> <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel"
+            data-bs-slide="next"> <span class="carousel-control-next-icon" aria-hidden="true">
+            </span> </button>
+    </div>
+</div>
+<div class="main-content-wrapper mb-5">
+    <div class="container">
+        <div class="row"> <!-- Main Content Area (12 cols) -->
+            <div class="col-lg-12"> <!-- Map Section -->
+                {% if request.GET.track_bus %}
+                <div class="row mb-5" id="map-section">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="text-primary">
+                                <i class="bi bi-map-fill">
+                                </i> Live Bus Tracking
+                            </h2> <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg">
+                                </i> Close Map</a>
+                        </div>
+                        <div class="card glass-card shadow-lg p-2">
+                            <div class="card-body p-0">
+                                <div id="map">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- Special Trips Section -->
+                {% if special_trips %}
+                <div class="row mb-5">
+                    <div class="col-md-12">
+                        <h2 class="text-primary mb-4">
+                            <i class="bi bi-star-fill">
+                            </i> Special Trips & Events
+                        </h2>
+                        <div class="row g-4">
+                            {% for trip in special_trips %}
+                            <div class="col-6 col-md-4">
+                                <div class="card h-100 border-0 shadow-sm glass-card position-relative"
+                                    style="border-left: 4px solid #0d6efd !important;">
+                                    <div class="card-body p-2 p-md-3">
+                                        <div class="d-flex justify-content-between mb-2"> <span class="badge bg-primary"
+                                                style="font-size: 0.65rem;">SPECIAL</span> <small class="text-muted"
+                                                style="font-size: 0.65rem;"> <i class="bi bi-calendar">
+                                                </i>
+                                                {{ trip.date|date:"D, M d" }}
+                                            </small> </div>
+                                        <h6 class="card-title fw-bold mb-1 fs-mobile-7 text-truncate">
+                                            {{ trip.source }}
+                                            <i class="bi bi-arrow-right">
+                                            </i>
+                                            {{ trip.destination }}
+                                        </h6>
+                                        <p class="text-primary fw-bold mb-2 small mb-md-3"> <i class="bi bi-clock">
+                                            </i>
+                                            {{ trip.departure_time|time:"h:i A" }}
+                                        </p>
+                                        <hr class="text-muted opacity-25 my-2 my-md-3">
+                                        <div class="d-flex flex-column gap-2"> <small class="text-muted"
+                                                style="font-size: 0.7rem;">
+                                                <div class="text-truncate"> <i class="bi bi-bus-front">
+                                                    </i>
+                                                    {% if trip.bus %} {{ trip.bus.bus_number }}
+                                                    {% else %}
+                                                    TBA
+                                                    {% endif %}
+                                                </div>
+                                                <div class="text-truncate">
+                                                    <i class="bi bi-person-badge">
+                                                    </i>
+                                                    {{ trip.get_driver_name }}
+                                                </div>
+                                            </small>
+                                            <div class="d-flex gap-1 mt-1"> <button type="button"
+                                                    class="btn btn-xs btn-outline-info rounded-pill px-2 fw-bold w-100"
+                                                    style="font-size: 0.65rem;" data-bs-toggle="modal"
+                                                    data-bs-target="#tripDetailsModal{{ trip.id }}"> Details </button>
+                                                <a href="{% url 'book_seat' trip.id %}"
+                                                    class="btn btn-xs btn-primary px-2 rounded-pill fw-bold w-100"
+                                                    style="font-size: 0.65rem;">Book</a> </div>
+                                        </div>
+                                    </div> <!-- Modal -->
+                                    <div class="modal fade" id="tripDetailsModal{{ trip.id }}" tabindex="-1"
+                                        aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                                <div class="modal-header bg-primary text-white border-0">
+                                                    <h5 class="modal-title fw-bold">
+                                                        <i class="bi bi-info-circle me-2">
+                                                        </i>Trip Details
+                                                    </h5> <button type="button" class="btn-close btn-close-white"
+                                                        data-bs-dismiss="modal" aria-label="Close">
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body p-4 bg-light">
+                                                    <div class="card border-0 shadow-sm mb-3 rounded-3">
+                                                        <div class="card-body">
+                                                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">Bus
+                                                                Information</h6>
+                                                            <div class="row g-2 small">
+                                                                <div class="col-6 text-muted">Bus Number:</div>
+                                                                <div class="col-6 fw-bold text-dark">
+                                                                    {{ trip.bus.bus_number|default:"TBA" }}
+                                                                </div>
+                                                                <div class="col-6 text-muted">Driver:</div>
+                                                                <div class="col-6 fw-bold text-dark">
+                                                                    {{ trip.get_driver_name }}
+                                                                </div>
+                                                                <div class="col-6 text-muted">Type:</div>
+                                                                <div class="col-6 fw-bold text-dark">
+                                                                    {{ trip.type_label }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card border-0 shadow-sm rounded-3">
+                                                        <div class="card-body">
+                                                            <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">
+                                                                Route & Stoppages</h6>
+                                                            <div class="d-flex align-items-center mb-3">
+                                                                <div
+                                                                    class="badge bg-primary bg-opacity-10 text-primary me-2">
+                                                                    Route</div> <span class="fw-bold">
+                                                                    {% if trip.schedule %} {{ trip.schedule.route.name
+                                                                    }}
+                                                                    {% else %} {{ trip.source }}
+                                                                    -
+                                                                    {{ trip.destination }} {% endif %}
+                                                                </span>
+                                                            </div>
+                                                            <div class="small">
+                                                                <div class="fw-bold text-secondary mb-2">Stoppages:
+                                                                </div>
+                                                                <ul
+                                                                    class="list-unstyled ps-2 border-start border-3 border-warning mb-0">
+                                                                    {% for stop in trip.trip_stoppages.all %}
+                                                                    <li class="mb-1"> <i
+                                                                            class="bi bi-circle-fill text-warning me-2"
+                                                                            style="font-size: 6px;">
+                                                                        </i>
+                                                                        {{ stop.stop.name }} {% if stop.arrival_time %}
+                                                                        <span class="text-muted ms-1">(~
+                                                                            {{ stop.arrival_time|time:"h:i A" }}
+                                                                            )</span>
+                                                                        {% endif %}
+                                                                    </li>
+                                                                    {% empty %} {% if trip.schedule %}
+                                                                    {% with sch=trip.schedule %} {% with rt=sch.route %}
+                                                                    {% for stop in rt.routestop_set.all %}
+                                                                    <li class="mb-1"> <i
+                                                                            class="bi bi-circle-fill text-warning me-2"
+                                                                            style="font-size: 6px;">
+                                                                        </i>
+                                                                        {{ stop.stop.name }}
+                                                                    </li>
+                                                                    {% endfor %} {% endwith %}
+                                                                    {% endwith %} {% else %}
+                                                                    <li class="mb-1 text-muted">Direct Trip (No
+                                                                        intermediate stops)</li>
+                                                                    {% endif %} {% endfor %}
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-0 bg-white"> <button type="button"
+                                                        class="btn btn-secondary rounded-pill px-4"
+                                                        data-bs-dismiss="modal">Close</button> <a
+                                                        href="{% url 'book_seat' trip.id %}"
+                                                        class="btn btn-primary rounded-pill px-4 fw-bold">Book Seat</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> <!-- Status --> {% if trip.status == 'RUNNING' %}
+                                    <div class="mt-2 text-center"> <span
+                                            class="badge bg-success bg-opacity-10 text-success small border border-success w-100">LIVE
+                                            NOW</span> </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- Transport Schedules -->
+                <div class="row mb-5">
+                    <div class="col-md-12">
+                        <div
+                            class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                            <h2 class="text-primary mb-3 mb-md-0"> <i class="bi bi-calendar-event">
+                                </i> Schedules -
+                                {{ today|date:"M d, Y" }} </h2>
+                            <div class="d-flex flex-wrap gap-2 w-100 w-md-auto"> <a href="{% url 'notice_list' %}"
+                                    class="btn btn-warning fw-bold rounded-pill position-relative px-3 px-md-4 flex-grow-1 flex-md-grow-0">
+                                    <i class="bi bi-megaphone-fill me-1 me-md-2">
+                                    </i>Notice
+                                    {% if new_notices_count > 0 %}
+                                    <span
+                                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm border border-white">
+                                        {{ new_notices_count }}
+                                        <span class="visually-hidden">unread notices</span> </span>
+                                    {% endif %} </a> <a href="{% url 'active_buses' %}"
+                                    class="btn btn-outline-danger btn-sm rounded-pill px-3 flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center">Live
+                                    Location</a>
+                                {% if schedules_count > 5 %} <a href="{% url 'public_schedule_list' %}"
+                                    class="btn btn-outline-primary btn-sm rounded-pill px-3 flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center">View
+                                    All</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="table-responsive shadow-sm rounded-3">
+                            <table class="table table-hover align-middle mb-0" style="background-color: #fff;">
+                                <thead class="bg-light text-secondary small text-uppercase">
+                                    <tr>
+                                        <th class="ps-4">No</th>
+                                        <th>Route</th>
+                                        <th>Type</th>
+                                        <th>For</th>
+                                        <th>Dep</th>
+                                        <th>Leaving</th>
+                                        <th>Bus</th>
+                                        <th class="text-end pe-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in schedules %}
+                                    <tr>
+                                        <td class="ps-4 text-muted">
+                                            {{ forloop.counter }}
+                                        </td>
+                                        <td class="fw-bold">
+                                            {{ schedule.route.name }}
+                                        </td>
+                                        <td> <span class="badge bg-info bg-opacity-10 text-info">
+                                                {% if schedule.route_type == 'SHUTTLE' %}
+                                                Shuttle
+                                                {% else %}
+                                                Regular
+                                                {% endif %}
+                                            </span> </td>
+                                        <td>
+                                            {% if schedule.bus %} {% if schedule.bus.bus_type == 'FACULTY' %}
+                                            <span class="badge bg-primary bg-opacity-10 text-primary">Faculty</span>
+                                            {% else %}
+                                            <span class="badge bg-success bg-opacity-10 text-success">Student</span>
+                                            {% endif %} {% else %}
+                                            --
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-bold">
+                                            {{ schedule.departure_time|time:"h:i A" }}
+                                        </td>
+                                        <td class="fw-bold">
+                                            {% if schedule.return_time %} {{ schedule.return_time|time:"h:i A" }}
+                                            {% else %}
+                                            <span class="text-muted small fw-normal">--</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-bold">
+                                            {% if schedule.bus %} {{ schedule.bus.bus_number|slice:"-4:" }}
+                                            {% else %}
+                                            <span class="fw-normal">--</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            {% if schedule.next_trip %} {% if schedule.route_type == 'SHUTTLE' %}
+                                            {% if shuttle_booking_is_active%} <a
+                                                href="{% url 'book_seat' schedule.next_trip.id %}"
+                                                class="btn btn-sm btn-primary rounded-pill">Book Seat</a>
+                                            {% else %}
+                                            <span class="badge bg-light border text-muted" title="
+{{ settings.shuttle_booking_start_time }}
+-
+{{ settings.shuttle_booking_end_time }}
+">Inactive</span>
+                                            {% endif %} {% else %}
+                                            {% if booking_is_active%} <a
+                                                href="{% url 'book_seat' schedule.next_trip.id %}"
+                                                class="btn btn-sm btn-primary rounded-pill">Book Seat</a>
+                                            {% else %}
+                                            <span class="badge bg-light border text-muted">Inactive</span>
+                                            {% endif %} {% endif %}
+                                            {% elif booking_is_active%} <a href="{% url 'book_seat' schedule.id %}"
+                                                class="btn btn-sm btn-primary rounded-pill">Book Seat</a>
+                                            {% else %}
+                                            <span class="text-muted small">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="8" class="text-center py-5 text-muted">No schedules available.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End Main Content (12 cols) -->
+        </div> <!-- End Row --> <!-- Routes & Stoppages -->
+        <div class="row mb-5 pt-4">
+            <div class="col-12 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="fw-bold fs-2 text-dark mb-0"> <i class="bi bi-signpost-split-fill text-danger me-2">
+                        </i>Routes & Stoppages </h2>
+                    {% if routes_count > 4 %} <a href="{% url 'public_route_list' %}"
+                        class="btn btn-outline-primary btn-sm rounded-pill px-4"> View All </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="row g-2 g-md-4">
+                    {% for route in routes %}
+                    <div class="col-6 col-md-6 mb-2 mb-md-4">
+                        <div class="p-2 p-md-3 h-100 rounded-3"
+                            style="background: #f8f9fa; border-left: 5px solid #0d6efd;">
+                            <h5 class="fw-bold text-dark mb-2 mb-md-3">
+                                {{ route.name }}
+                            </h5>
+                            <ul class="list-unstyled ps-1 ps-md-2 mb-0">
+                                {% for rs in route.routestop_set.all %}
+                                <li class="small text-secondary mb-1">•
+                                    {{ rs.stop.name }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted">No routes found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div> <!-- Video Section -->
+        {% if site_settings.homepage_video %} <div class="video-full-width-container shadow-lg"> <video autoplay loop
+                muted playsinline class="video-player">
+                <source src=" {{ site_settings.homepage_video.url }} " type="video/mp4"> Your browser does not support
+                the video tag.
+            </video> </div>
+        {% endif %}
+        <!-- How it Works -->
+        <div class="row mb-5 pt-5">
+            <div class="col-12 mb-5 text-center">
+                <h2 class="fw-bold fs-1 text-dark position-relative d-inline-block"> How it Works <div
+                        style="height: 4px; width: 60%; background: #0088cc; margin: 10px auto 0;">
+                    </div>
+                </h2>
+                <p class="text-secondary mt-3">Your complete guide to using the University Bus Management System.</p>
+            </div>
+            <div class="col-6 col-md-4 mb-4">
+                <div
+                    class="p-3 p-md-4 rounded-4 h-100 shadow-sm border-0 transition-hover bg-white text-center text-md-start">
+                    <div
+                        class="mb-3 mb-md-4 text-primary bg-primary bg-opacity-10 d-inline-flex p-2 p-md-3 rounded-pill">
+                        <i class="bi bi-person-plus fs-2">
+                        </i> </div>
+                    <h5 class="fw-bold text-dark mb-2 mb-md-3 small fs-md-6">1. Secure Registration</h5>
+                    <p class="small text-secondary mb-0" style="font-size: 0.75rem;">Sign up using your official
+                        university email. Students and faculty get personalized access to their respective route
+                        permissions.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 mb-4">
+                <div
+                    class="p-3 p-md-4 rounded-4 h-100 shadow-sm border-0 transition-hover bg-white text-center text-md-start">
+                    <div
+                        class="mb-3 mb-md-4 text-success bg-success bg-opacity-10 d-inline-flex p-2 p-md-3 rounded-pill">
+                        <i class="bi bi-calendar-check fs-2">
+                        </i> </div>
+                    <h5 class="fw-bold text-dark mb-2 mb-md-3 small fs-md-6">2. Live Schedules</h5>
+                    <p class="small text-secondary mb-0" style="font-size: 0.75rem;">View real-time departure and
+                        arrival times for all shuttles. Filter by route type (Shuttle/Regular) to find your perfect
+                        trip.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 mb-4">
+                <div
+                    class="p-3 p-md-4 rounded-4 h-100 shadow-sm border-0 transition-hover bg-white text-center text-md-start">
+                    <div
+                        class="mb-3 mb-md-4 text-warning bg-warning bg-opacity-10 d-inline-flex p-2 p-md-3 rounded-pill">
+                        <i class="bi bi-ticket-perforated fs-2">
+                        </i> </div>
+                    <h5 class="fw-bold text-dark mb-2 mb-md-3 small fs-md-6">3. Smart Booking</h5>
+                    <p class="small text-secondary mb-0" style="font-size: 0.75rem;">Reserve your seat instantly through
+                        the dashboard. Get immediate confirmation and access to your digital ticket on your mobile.</p>
+                </div>
+            </div> <!-- Row 2 -->
+            <div class="col-6 col-md-4 mb-4">
+                <div
+                    class="p-3 p-md-4 rounded-4 h-100 shadow-sm border-0 transition-hover bg-white text-center text-md-start">
+                    <div class="mb-3 mb-md-4 text-danger bg-danger bg-opacity-10 d-inline-flex p-2 p-md-3 rounded-pill">
+                        <i class="bi bi-geo-alt fs-2">
+                        </i> </div>
+                    <h5 class="fw-bold text-dark mb-2 mb-md-3 small fs-md-6">4. Live GPS Tracking</h5>
+                    <p class="small text-secondary mb-0" style="font-size: 0.75rem;">Never miss your bus. Use the
+                        integrated live map to track the exact location of your shuttle as it approaches your stop.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 mb-4">
+                <div
+                    class="p-3 p-md-4 rounded-4 h-100 shadow-sm border-0 transition-hover bg-white text-center text-md-start">
+                    <div class="mb-3 mb-md-4 text-info bg-info bg-opacity-10 d-inline-flex p-2 p-md-3 rounded-pill"> <i
+                            class="bi bi-shield-check fs-2">
+                        </i> </div>
+                    <h5 class="fw-bold text-dark mb-2 mb-md-3 small fs-md-6">5. Verified Inspection</h5>
+                    <p class="small text-secondary mb-0" style="font-size: 0.75rem;">Travel with peace of mind. Every
+                        bus undergoes regular safety inspections by certified inspectors before hitting the road.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 mb-4">
+                <div
+                    class="p-3 p-md-4 rounded-4 h-100 shadow-sm border-0 transition-hover bg-white text-center text-md-start">
+                    <div class="mb-3 mb-md-4 text-secondary bg-light d-inline-flex p-2 p-md-3 rounded-pill"> <i
+                            class="bi bi-headset fs-2">
+                        </i> </div>
+                    <h5 class="fw-bold text-dark mb-2 mb-md-3 small fs-md-6">6. Support & Feedback</h5>
+                    <p class="small text-secondary mb-0" style="font-size: 0.75rem;">Report issues or provide feedback
+                        directly from your student dashboard. Our support team is here to ensure a smooth journey.</p>
+                </div>
+            </div>
+        </div>
+    </div> <!-- End Container -->
+</div> <!-- End Wrapper -->
+{% endblock %} {% block extra_js %}
+<script> function updateHeroClock() { const now = new Date(); const dateOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Dhaka' }; const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Dhaka' }; const dateEl = document.getElementById('currentDate'); const timeEl = document.getElementById('currentTime'); if (dateEl) dateEl.textContent = now.toLocaleDateString('en-US', dateOptions); if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', timeOptions); } setInterval(updateHeroClock, 1000); updateHeroClock(); </script>
+{% if request.GET.track_bus %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+<script> var map = L.map('map').setView([23.8103, 90.4125], 11); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); var markers = {}; function updateLocations() {
+        fetch('
+{% url "get_bus_locations" %}
+    ') .then(r => r.json()) .then(data => { data.locations.forEach(bus => { const latlng = [bus.lat, bus.lng]; if (markers[bus.bus_number]) { markers[bus.bus_number].setLatLng(latlng); } else { markers[bus.bus_number] = L.marker(latlng).addTo(map).bindPopup(bus.bus_number); } }); }); } setInterval(updateLocations, 5000); updateLocations(); </script>
+{% endif %} {% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid py-4 main-content-wrapper">
+    <!-- Mobile Sidebar -->
+    {% include 'core/_mobile_offcanvas_sidebar.html' %}
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sticky-top" style="top: 20px;">
+                {% include 'core/_admin_sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-12">
+            <div class="d-flex align-items-center mb-4">
+                <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <h2 class="mb-0 text-primary">
+                    Seat Management
+                </h2>
+            </div>
+            <div class="card mb-4 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 bg-light">
+                    <form method="POST" class="row align-items-end g-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_booking_times" value="1">
+                        <!-- Regular Bus Settings -->
+                        <div class="col-12 mb-2">
+                            <h6 class="text-secondary fw-bold border-bottom pb-2">Regular Bus Settings</h6>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Start Time</label>
+                            <input type="time" name="booking_start_time" class="form-control rounded-pill"
+                                value="{{ site_settings.booking_start_time|time:'H:i' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">End Time</label>
+                            <input type="time" name="booking_end_time" class="form-control rounded-pill"
+                                value="{{ site_settings.booking_end_time|time:'H:i' }}">
+                        </div>
+                        <div class="col-md-6"></div>
+
+                        <!-- Shuttle Bus Settings -->
+                        <div class="col-12 mt-3 mb-2">
+                            <h6 class="text-secondary fw-bold border-bottom pb-2">Shuttle Bus Settings</h6>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Start Time</label>
+                            <input type="time" name="shuttle_booking_start_time" class="form-control rounded-pill"
+                                value="{{ site_settings.shuttle_booking_start_time|time:'H:i' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">End Time</label>
+                            <input type="time" name="shuttle_booking_end_time" class="form-control rounded-pill"
+                                value="{{ site_settings.shuttle_booking_end_time|time:'H:i' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label d-block">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary rounded-pill w-100">
+                                Update Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle border shadow-sm rounded-3">
+                    <thead class="bg-dark text-white">
+                        <tr>
+                            <th class="ps-3">Route</th>
+                            <th>Status</th>
+                            <th>Occupancy</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in schedules %}
+                        <tr class="{% if not s.today_trip %}opacity-50{% endif %}">
+                            <td class="ps-3">
+                                <strong>
+                                    {{ s.route.name }}
+                                </strong>
+                                <br>
+                                <small class="text-muted">
+                                    {{ s.departure_time|time:"h:i A" }}
+                                    {% if s.return_time %}
+                                    | {{ s.return_time|time:"h:i A" }}
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                {% if s.today_trip %}
+                                <span class="badge bg-success">RUNNING</span>
+                                {% elif booking_is_active %}
+                                <span class="badge bg-primary">ACTIVE</span>
+                                {% else %}
+                                <span class="badge bg-secondary">NO TRIP</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="fw-bold">{{ s.occupancy_pct }}%</div>
+                                <small class="text-muted">
+                                    {{ s.seat_count }} booked
+                                </small>
+                            </td>
+                            <td class="text-end pe-3">
+                                {% if s.today_trip %}
+                                <a href="{% url 'admin_trip_seats' s.today_trip.id %}"
+                                    class="btn btn-sm btn-outline-primary rounded-pill">
+                                    Booking History
+                                </a>
+                                {% else %}
+                                <a href="{% url 'admin_schedule_seats' s.id %}"
+                                    class="btn btn-sm btn-light border rounded-pill">
+                                    Booking History
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">No schedules found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .x-small {
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4 main-content-wrapper">
+    <!-- Mobile Sidebar -->
+    {% include 'core/_mobile_offcanvas_sidebar.html' %}
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sticky-top" style="top: 20px;">
+                {% include 'core/_admin_sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <h2 class="fw-bold text-dark mb-0">Schedule Management</h2>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'schedule_create' %}" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-plus-lg me-1"></i> Add Schedule
+                    </a>
+                </div>
+            </div>
+
+            <!-- Operating Date Control -->
+            <div class="card mb-4 border-0 shadow-sm rounded-4 bg-light">
+                <div class="card-body p-3">
+                    <form method="POST" class="row g-2 align-items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_operating_date" value="1">
+                        <div class="col-auto">
+                            <span class="fw-bold small text-muted text-uppercase">Operating Date:</span>
+                        </div>
+                        <div class="col-auto">
+                            <input type="date" name="operating_date" class="form-control form-control-sm rounded-pill"
+                                value="{{ site_settings.current_operating_date|date:'Y-m-d' }}" required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-sm btn-dark rounded-pill px-3">Update Home</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Route</th>
+                                <th>Type</th>
+                                <th>Bus</th>
+                                <th>Departure</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in schedules %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ schedule.route.name }}</td>
+                                <td>
+                                    <span
+                                        class="badge {% if schedule.route_type == 'SHUTTLE' %}bg-warning-subtle text-warning{% else %}bg-light text-muted{% endif %} border rounded-pill">
+                                        {{ schedule.get_route_type_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if schedule.bus %}
+                                    <span class="fw-semibold text-primary">{{ schedule.bus.bus_number }}</span>
+                                    {% else %}
+                                    <span class="text-muted small">TBA</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ schedule.departure_time|time:"h:i A" }}</td>
+                                <td class="text-end pe-4">
+                                    <div class="dropdown">
+                                        <button class="btn btn-link text-secondary p-0" type="button"
+                                            data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                            <li><a class="dropdown-item py-2"
+                                                    href="{% url 'schedule_edit' schedule.pk %}"><i
+                                                        class="bi bi-pencil-square me-2 text-warning"></i> Edit</a></li>
+                                            <li><a class="dropdown-item py-2 text-danger"
+                                                    href="{% url 'schedule_delete' schedule.pk %}"><i
+                                                        class="bi bi-trash3 me-2"></i> Delete</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">No schedules found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}

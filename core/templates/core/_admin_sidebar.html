@@ -1,0 +1,188 @@
+<div class="list-group border-0 shadow-sm rounded-4 overflow-hidden mb-4 admin-sidebar-nav">
+    <a href="{% url 'admin_dashboard' %}"
+        class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-speedometer2"></i></div>
+            <span>Dashboard</span>
+        </div>
+    </a>
+
+    <a href="{% url 'admin_user_list' %}"
+        class="list-group-item list-group-item-action {% if 'admin-user' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-people"></i></div>
+            <span>Manage Users</span>
+        </div>
+    </a>
+
+    <div class="sidebar-separator">FLEET MANAGEMENT</div>
+
+    <a href="{% url 'bus_list' %}"
+        class="list-group-item list-group-item-action {% if 'bus' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-bus-front"></i></div>
+            <span>Manage Buses</span>
+        </div>
+    </a>
+    <a href="{% url 'driver_list' %}"
+        class="list-group-item list-group-item-action {% if 'driver' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-person-badge"></i></div>
+            <span>Manage Drivers</span>
+        </div>
+    </a>
+    <a href="{% url 'inspector_list' %}"
+        class="list-group-item list-group-item-action {% if 'inspector' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-shield-shaded"></i></div>
+            <span>Manage Inspectors</span>
+        </div>
+    </a>
+
+    <div class="sidebar-separator">OPERATIONS</div>
+
+    <a href="{% url 'route_list' %}"
+        class="list-group-item list-group-item-action {% if 'route' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-map"></i></div>
+            <span>Manage Routes</span>
+        </div>
+    </a>
+    <a href="{% url 'schedule_list' %}"
+        class="list-group-item list-group-item-action {% if 'schedule' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-calendar-event"></i></div>
+            <span>Manage Schedules</span>
+        </div>
+    </a>
+    <a href="{% url 'trip_list' %}"
+        class="list-group-item list-group-item-action {% if 'trip' in request.path and 'seat' not in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-clock-history"></i></div>
+            <span>Manage Trips</span>
+        </div>
+    </a>
+
+    <div class="sidebar-separator">MONITORING</div>
+
+    <a href="{% url 'inspection_list' %}"
+        class="list-group-item list-group-item-action {% if 'inspection' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-journal-check"></i></div>
+            <span>Inspections</span>
+        </div>
+    </a>
+    <a href="{% url 'map_view' %}"
+        class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'map_view' %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-pin-map"></i></div>
+            <span>GPS Tracking</span>
+        </div>
+    </a>
+
+    <div class="sidebar-separator">ADMINISTRATION</div>
+
+    <a href="{% url 'seat_management' %}"
+        class="list-group-item list-group-item-action {% if 'seat' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-grid-3x3-gap"></i></div>
+            <span>Seat Management</span>
+        </div>
+    </a>
+
+    <a href="{% url 'site_settings' %}"
+        class="list-group-item list-group-item-action {% if 'settings' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-gear"></i></div>
+            <span>Site Config</span>
+        </div>
+    </a>
+    <a href="{% url 'admin_complaint_list' %}"
+        class="list-group-item list-group-item-action {% if 'complaint' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-chat-dots"></i></div>
+            <span>Complaints</span>
+        </div>
+    </a>
+
+    <a href="{% url 'admin_notice_list' %}"
+        class="list-group-item list-group-item-action {% if 'notice' in request.path %}active{% endif %}">
+        <div class="d-flex align-items-center">
+            <div class="icon-box"><i class="bi bi-megaphone"></i></div>
+            <span>Notices</span>
+        </div>
+    </a>
+</div>
+
+
+<style>
+    .admin-sidebar-nav {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        padding: 0.75rem;
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        border-radius: 1.25rem !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    .list-group-item {
+        border: none !important;
+        border-radius: 0.85rem !important;
+        margin-bottom: 0.3rem;
+        padding: 0.8rem 1rem !important;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #475569 !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        background: transparent !important;
+    }
+
+    .list-group-item.active {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+        color: #fff !important;
+        box-shadow: 0 8px 15px -3px rgba(13, 110, 253, 0.3) !important;
+    }
+
+    .list-group-item.active .icon-box {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+
+    .list-group-item:hover:not(.active) {
+        background-color: #fff !important;
+        color: #0d6efd !important;
+        transform: translateX(4px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    .list-group-item:hover:not(.active) .icon-box {
+        background-color: #eff6ff;
+        color: #0d6efd;
+    }
+
+    .icon-box {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.6rem;
+        margin-right: 0.85rem;
+        background: #f1f5f9;
+        color: #64748b;
+        transition: all 0.2s ease;
+        font-size: 1.1rem;
+    }
+
+    .sidebar-separator {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        color: #94a3b8;
+        padding: 1.5rem 1rem 0.6rem 1rem;
+        text-transform: uppercase;
+        opacity: 0.7;
+    }
+</style>

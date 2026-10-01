@@ -1,0 +1,73 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | UBMIS Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="font-family: -apple-system, sans-serif;">
+        <i class="bi bi-bus-front me-2"></i>UBMIS Administration
+    </a>
+</h1>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Academic Branding for Admin */
+    #header {
+        background: #007cb0 !important;
+        /* Project Blue */
+        color: #fdb813 !important;
+        /* Project Gold */
+        border-bottom: 3px solid #fdb813 !important;
+    }
+
+    #header a:link,
+    #header a:visited {
+        color: #ffffff !important;
+    }
+
+    #branding h1 {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+
+    /* Fix Dark Mode Contrast Issues */
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --body-bg: #1a1c1e !important;
+            --primary: #007cb0 !important;
+            --secondary: #2d3033 !important;
+            --link-fg: #6bc4ff !important;
+        }
+
+        #changelist #toolbar form input[type="text"] {
+            background-color: #2d3033 !important;
+            color: #ffffff !important;
+            border: 1px solid #454d55 !important;
+            border-radius: 4px !important;
+            padding: 4px 8px !important;
+        }
+
+        .module h2,
+        .module caption,
+        .inline-group h2 {
+            background: #2d3033 !important;
+            color: #e9ecef !important;
+        }
+    }
+
+    /* Force Sans-Serif for Admin for crispness */
+    body,
+    #content,
+    #header,
+    .sidebar {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
+    /* Alignment Fixes */
+    .sidebar {
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+</style>
+{% endblock %}

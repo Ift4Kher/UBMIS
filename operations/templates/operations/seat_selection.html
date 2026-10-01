@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+            <div class="card-header bg-primary text-white p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">
+                            <i class="bi bi-ui-checks-grid me-2"></i>Select Your Seat
+                        </h3>
+                        <p class="mb-0 opacity-75 fw-semibold">
+                            {% if trip.schedule %}
+                            Route: {{ trip.schedule.route.name }}
+                            {% else %}
+                            Special Trip: {{ trip.source }} to {{ trip.destination }}
+                            {% endif %}
+                        </p>
+                        <p class="mb-0 opacity-75 small mt-1">
+                            {{ trip.source }}
+                            <i class="bi bi-arrow-right mx-1"></i>
+                            {{ trip.destination }}
+                            |
+                            {{ trip.date|date:"M d, Y" }}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-white text-primary px-3 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-clock me-1"></i>
+                            {% if trip.schedule %}
+                            {{ trip.schedule.departure_time|time:"h:i A" }}
+                            {% else %}
+                            {{ trip.departure_time|time:"h:i A" }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 bg-light">
+                <div class="row">
+                    <!-- Left: Seat Map -->
+                    <div class="col-md-7 border-end pe-md-4">
+                        <div class="bus-container bg-white p-4 shadow-sm rounded-4 mb-3"
+                            style="border: 2px solid #dee2e6;">
+                            <div class="bus-front mb-4 text-center">
+                                <div class="bg-secondary bg-opacity-10 py-2 rounded-3 text-muted small fw-bold text-uppercase"
+                                    style="letter-spacing: 2px;">
+                                    <i class="bi bi-steering me-2"></i>Driver Side
+                                </div>
+                            </div>
+
+                            <div class="seat-grid d-flex flex-wrap justify-content-center gap-2">
+                                {% for s in range_capacity %}
+                                <div class="seat-wrapper text-center">
+                                    <button type="button"
+                                        class="seat btn {% if s in booked_seats %}btn-danger disabled{% else %}btn-outline-success{% endif %} p-0 d-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 45px; height: 45px; border-radius: 8px; font-weight: bold; position: relative;"
+                                        data-seat="{{ s }}" {% if s in booked_seats %}disabled{% endif %}>
+                                        {{ s }}
+                                        {% if s in booked_seats %}
+                                        <i class="bi bi-x-circle-fill position-absolute top-0 end-0 translate-middle-y text-white"
+                                            style="font-size: 0.6rem;"></i>
+                                        {% endif %}
+                                    </button>
+                                </div>
+                                {% if forloop.counter|divisibleby:4 and not forloop.last %}
+                                <div class="w-100 mb-2"></div> <!-- Row break every 4 seats -->
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top text-center">
+                                <div class="d-flex justify-content-center gap-4">
+                                    <div class="small d-flex align-items-center"><span
+                                            class="bg-success rounded-circle me-2"
+                                            style="width: 12px; height: 12px; display: inline-block;"></span> Available
+                                    </div>
+                                    <div class="small d-flex align-items-center"><span
+                                            class="bg-danger rounded-circle me-2"
+                                            style="width: 12px; height: 12px; display: inline-block;"></span> Booked
+                                    </div>
+                                    <div class="small d-flex align-items-center"><span
+                                            class="bg-primary rounded-circle me-2"
+                                            style="width: 12px; height: 12px; display: inline-block;"></span> Selected
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Booking Form -->
+                    <div class="col-md-5 ps-md-4">
+                        <div class="h-100 d-flex flex-column">
+                            <h5 class="fw-bold mb-4 text-dark border-bottom pb-2">Booking Summary</h5>
+
+                            {% if user_booking %}
+                            <!-- Success UI: User already has a booking for THIS trip -->
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <i class="bi bi-ticket-perforated-fill text-success" style="font-size: 4rem;"></i>
+                                </div>
+                                <h4 class="fw-bold">You're All Set!</h4>
+                                <p class="text-muted">You have a confirmed booking for this trip.</p>
+                                <div class="badge bg-success px-4 py-2 fs-5 mt-2 shadow-sm">
+                                    {% if user_booking.booking_type == 'SEAT' %}
+                                    Seat #{{ user_booking.seat_number }}
+                                    {% else %}
+                                    Standby Ticket
+                                    {% endif %}
+                                </div>
+                                <div class="mt-4">
+                                    <a href="{% url 'dashboard' %}" class="btn btn-primary px-4 rounded-pill fw-bold">
+                                        Back to Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                            {% elif other_booking %}
+                            <!-- Warning UI: User has a booking for a DIFFERENT trip today -->
+                            <div class="text-center py-4 bg-white rounded-4 shadow-sm border-warning border mb-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-exclamation-octagon text-warning" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="fw-bold">Daily Limit Reached</h5>
+                                <p class="text-muted small px-3">
+                                    You already have a confirmed booking for
+                                    <span class="fw-bold text-dark">{{ other_booking.trip.date|date:"M d, Y" }}</span>
+                                    on a different route.
+                                </p>
+                                <p class="text-muted small px-3">Per policy, you can only book one seat per day across
+                                    the entire system.</p>
+                                <div class="mt-3">
+                                    <a href="{% url 'dashboard' %}"
+                                        class="btn btn-warning btn-sm px-4 rounded-pill fw-bold">
+                                        Manage Existing Booking
+                                    </a>
+                                </div>
+                            </div>
+                            {% elif not user.is_student and not user.is_faculty %}
+                            <!-- Error UI: User is not authorized (Inspector/Driver/etc) -->
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <i class="bi bi-shield-lock-fill text-danger" style="font-size: 4rem;"></i>
+                                </div>
+                                <h4 class="fw-bold text-danger">Access Denied</h4>
+                                <p class="text-muted">Only students and faculty are authorized to book seats.</p>
+                                <div class="mt-4">
+                                    <a href="{% url 'dashboard' %}" class="btn btn-secondary px-4 rounded-pill fw-bold">
+                                        Return to Dashboard
+                                    </a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <!-- Booking Form: User has no bookings today -->
+                            <form id="booking-form" method="post" class="flex-grow-1">
+                                {% csrf_token %}
+                                <input type="hidden" name="seat_number" id="id_seat_number">
+                                <input type="hidden" name="action" id="id_action" value="book_seat">
+
+                                <div class="selected-info card bg-white border-0 shadow-sm p-3 mb-4 rounded-3 d-none"
+                                    id="selected-seat-info">
+                                    <p class="mb-1 text-muted small">Selected Seat</p>
+                                    <h3 class="fw-bold text-primary mb-0" id="display-seat-number">--</h3>
+                                </div>
+
+                                <div class="alert alert-info border-0 shadow-sm rounded-3 py-3" id="selection-prompt">
+                                    <i class="bi bi-info-circle me-2"></i>Please click on a <strong>green seat</strong>
+                                    to select it.
+                                </div>
+
+                                <button type="submit"
+                                    class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm mb-3 d-none"
+                                    id="confirm-booking-btn">
+                                    <i class="bi bi-check-circle me-2"></i>Confirm Seat Booking
+                                </button>
+                            </form>
+
+                            <div class="mt-auto">
+                                {% if booked_seats|length >= capacity %}
+                                <div class="card border-warning bg-warning bg-opacity-10 p-3 rounded-3 mb-3">
+                                    <h6 class="fw-bold text-warning-emphasis mb-2"><i
+                                            class="bi bi-exclamation-triangle-fill me-2"></i>Bus is Full</h6>
+                                    <p class="small text-muted mb-3">All fixed seats are booked. You can join the
+                                        standby list.</p>
+
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="book_standby">
+                                        <button type="submit"
+                                            class="btn btn-warning w-100 py-2 fw-bold text-dark rounded-3 shadow-sm">
+                                            Join Standby List
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const seats = document.querySelectorAll('.seat:not(.disabled)');
+        const seatInput = document.getElementById('id_seat_number');
+        const displaySeat = document.getElementById('display-seat-number');
+        const infoCard = document.getElementById('selected-seat-info');
+        const prompt = document.getElementById('selection-prompt');
+        const confirmBtn = document.getElementById('confirm-booking-btn');
+
+        seats.forEach(seat => {
+            seat.addEventListener('click', function () {
+                // Remove selection from others
+                seats.forEach(s => {
+                    s.classList.remove('btn-primary');
+                    s.classList.add('btn-outline-success');
+                });
+
+                // Select this seat
+                this.classList.remove('btn-outline-success');
+                this.classList.add('btn-primary');
+
+                const num = this.getAttribute('data-seat');
+                seatInput.value = num;
+                displaySeat.textContent = 'Seat #' + num;
+
+                infoCard.classList.remove('d-none');
+                prompt.classList.add('d-none');
+                confirmBtn.classList.remove('d-none');
+            });
+        });
+    });
+</script>
+
+<style>
+    .seat-grid {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .seat {
+        transition: all 0.2s ease;
+    }
+
+    .seat:hover:not(.disabled) {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .bus-container {
+        background-image: linear-gradient(to bottom, #fdfdfd, #f8f9fa);
+        border-radius: 20px 20px 60px 60px !important;
+    }
+</style>
+{% endblock %}

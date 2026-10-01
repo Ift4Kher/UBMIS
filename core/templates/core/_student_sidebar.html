@@ -1,0 +1,16 @@
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden sidebar-menu-card">
+    <div class="list-group list-group-flush">
+        <a href="{% url 'my_bookings' %}"
+            class="list-group-item list-group-item-action py-3 border-0 sidebar-menu-item">
+            <i class="bi bi-clock-history me-3"></i>Booking History
+        </a>
+        <a href="{% url 'map_view' %}" class="list-group-item list-group-item-action py-3 border-0 sidebar-menu-item">
+            <i class="bi bi-map me-3"></i>Live Bus Map
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 mt-4 bg-primary text-white p-4 quick-actions-card">
+    <h6 class="fw-bold mb-3">Quick Actions</h6>
+    <a href="{% url 'home' %}" class="btn btn-light btn-sm w-100 mb-2">Book New Trip</a>
+</div>

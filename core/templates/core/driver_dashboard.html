@@ -1,0 +1,506 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #preview-map {
+        height: 300px;
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        display: none;
+        /* Hidden until tracking starts */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Mobile Sidebar -->
+{% include 'core/_mobile_driver_offcanvas.html' %}
+
+<div class="row align-items-center mb-4 main-content-wrapper">
+    <div class="col d-flex align-items-center">
+        <button class="btn btn-outline-primary d-md-none me-3" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#driverSidebarMenu" aria-controls="driverSidebarMenu">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3 d-none d-md-block">
+        {% include 'core/_driver_sidebar.html' %}
+    </div>
+    <div class="col-md-9">
+        {% if active_tab == 'status' %}
+        <!-- Vehicle Status View -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Vehicle Status</h2>
+            {% if assigned_bus %}
+            <span class="badge bg-primary rounded-pill px-3">{{ assigned_bus.bus_number }}</span>
+            {% endif %}
+        </div>
+
+        {% if assigned_bus %}
+        <div class="row g-4 mb-4">
+            <!-- Booking Summary Card -->
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm rounded-4 text-white"
+                    style="background: linear-gradient(45deg, #0d6efd, #0dcaf0);">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase opacity-75 mb-1 fw-bold">Current Trip Bookings</h6>
+                                <h1 class="display-4 fw-800 mb-0">{{ booking_count }}</h1>
+                                <p class="mb-0">Confirmed Seats</p>
+                            </div>
+                            <div class="bg-white bg-opacity-25 rounded-circle p-4">
+                                <i class="bi bi-people-fill fs-1"></i>
+                            </div>
+                        </div>
+                        <hr class="bg-white opacity-25">
+                        <div class="small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {% if current_trip %}
+                            Active Trip: <strong>{{ trip_source }} &rarr; {{ trip_dest }}</strong>
+                            {% else %}
+                            No active trip scheduled to show detailed counts.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Reports Card -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard2-pulse me-2"></i>Recent Health Reports</h5>
+                    </div>
+                    <div class="table-responsive p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light small text-uppercase text-muted">
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Inspector</th>
+                                    <th>Score</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in inspections %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">{{ report.inspection_date|date:"M d, Y" }}</div>
+                                        <small class="text-muted">{{ report.inspection_date|date:"h:i A" }}</small>
+                                    </td>
+                                    <td>{{ report.get_inspector_name }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 6px; width: 60px;">
+                                            <div class="progress-bar {% if report.overall_status == 'PASS' %}bg-success{% else %}bg-danger{% endif %}"
+                                                style="width: {{ report.score_percentage }}%;"></div>
+                                        </div>
+                                        <small class="fw-bold">{{ report.score_percentage }}%</small>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if report.overall_status == 'PASS' %}
+                                        <span
+                                            class="badge bg-success-soft text-success border border-success px-3 py-2 rounded-pill fw-bold">PASS</span>
+                                        {% else %}
+                                        <span
+                                            class="badge bg-danger-soft text-danger border border-danger px-3 py-2 rounded-pill fw-bold">FAIL</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">No recent inspection reports
+                                        found for this vehicle.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning rounded-4 shadow-sm">
+            <i class="bi bi-exclamation-triangle me-2"></i> You have no bus assigned to view reports.
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Overview View (Original Dashboard) -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Driver Dashboard</h2>
+            <span class="text-muted small">Access Level: {{ role_display }}</span>
+        </div>
+
+        {% if assigned_bus %}
+        <div class="card mb-4 border-0 shadow-sm rounded-4">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-bus-front me-2"></i>Assigned Vehicle</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-6 border-end">
+                        <h3 class="fw-800 text-primary mb-1">{{ assigned_bus.bus_number }}</h3>
+                        <p class="text-muted mb-3">{{ assigned_bus.name|default:"Maintenance Unit" }}</p>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-tag me-1"></i>{{ bus_type }}</span>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-people me-1"></i>Cap: {{ bus_cap }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                        <button id="startTripBtn" class="btn btn-success btn-lg px-5 rounded-pill shadow-sm fw-bold"
+                            onclick="toggleTracking()" data-bus-id="{{ assigned_bus.id }}"
+                            data-trip-id="{{ current_trip.id|default:'' }}"
+                            data-initial-status="{{ current_trip.status|default:'' }}">
+                            <i class="bi bi-play-fill me-1"></i>Start Trip / GPS
+                        </button>
+                        <div id="statusMsg" class="mt-2 text-muted small"></div>
+                    </div>
+                </div>
+
+                <!-- Map Preview Section -->
+                <div id="mapSection" style="display: none;" class="mt-4">
+                    <hr>
+                    <label class="form-label small fw-800 text-muted mb-2"><i
+                            class="bi bi-geo-alt-fill text-danger me-1"></i>LIVE TRACKING PREVIEW</label>
+                    <div id="preview-map" class="shadow-sm border"></div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5 bg-white rounded-4 shadow-sm mb-4">
+            <div class="display-1 text-warning mb-4"><i class="bi bi-exclamation-octagon"></i></div>
+            <h3 class="fw-bold">No Permanent Bus</h3>
+            <p class="text-muted px-5">You are not currently linked to a permanent vehicle, but check below for specific
+                trip assignments.</p>
+        </div>
+        {% endif %}
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="fw-bold mb-0">Current / Next Trip</h5>
+                    {% if current_trip.is_special %}
+                    <span class="badge bg-warning text-dark border-0"><i class="bi bi-star-fill me-1"></i>SPECIAL</span>
+                    {% endif %}
+                </div>
+
+                {% if current_trip %}
+                <div
+                    class="bg-white p-3 rounded-4 mb-3 border-start border-4 {% if current_trip.is_special %}border-warning shadow-sm{% else %}border-primary{% endif %}">
+                    <h4 class="fw-bold text-dark mb-1">
+                        {% if current_trip.is_special %}
+                        <i class="bi bi-star-fill text-warning me-1"></i>
+                        {{ current_trip.source }} &rarr; {{ current_trip.destination }}
+                        {% elif current_trip.schedule %}
+                        {{ current_trip.schedule.route.name }}
+                        {% else %}
+                        {{ current_trip.source }} &rarr; {{ current_trip.destination }}
+                        {% endif %}
+                    </h4>
+                    <div class="text-muted small">
+                        <i class="bi bi-clock me-1"></i> Departure:
+                        <strong>
+                            {% if current_trip.schedule %}
+                            {{ current_trip.schedule.departure_time|time:"h:i A" }}
+                            {% elif current_trip.departure_time %}
+                            {{ current_trip.departure_time|time:"h:i A" }}
+                            {% else %}
+                            TBA
+                            {% endif %}
+                        </strong>
+                        <span class="ms-2 badge bg-white text-dark border border-light-subtle">{{ trip_status }}</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-info text-dark px-3 py-2 rounded-pill fw-bold">{{ trip_status }}</span>
+                    <a href="{% url 'trip_detail' current_trip.id %}"
+                        class="btn btn-link text-primary fw-bold text-decoration-none p-0">
+                        Details <i class="bi bi-chevron-right small"></i>
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="text-muted mb-2" style="font-size: 2.5rem;"><i class="bi bi-calendar-x"></i></div>
+                    <p class="text-muted">No active trips scheduled for today.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if special_trips %}
+        <div class="card border-0 shadow-sm rounded-4 mt-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-star-fill text-warning me-2"></i>Assigned Special Trips
+                    </h5>
+                    <span
+                        class="badge bg-warning-soft text-warning border border-warning px-3 py-1 rounded-pill small fw-bold">
+                        {{ special_trips|length }} Trips
+                    </span>
+                </div>
+
+                <div class="row g-3">
+                    {% for trip in special_trips %}
+                    <div class="col-md-6">
+                        <div class="bg-white p-3 rounded-4 border border-warning-subtle h-100 d-flex flex-column shadow-sm"
+                            style="border-left: 4px solid #ffc107 !important;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold text-dark mb-0">
+                                    {{ trip.source }} <i class="bi bi-arrow-right mx-1 text-muted"></i> {{ trip.destination }}
+                                </h6>
+                                <span class="badge bg-warning text-dark x-small"
+                                    style="font-size: 0.65rem;">SPECIAL</span>
+                            </div>
+
+                            <div class="text-muted small mb-2">
+                                <i class="bi bi-calendar-event me-1"></i> Date: <strong>{{ trip.date|date:"D, M d" }}</strong>
+                            </div>
+
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-clock me-1"></i> Departure:
+                                <strong>{{ trip.departure_time|time:"h:i A"|default:"TBA" }}</strong>
+                                <span class="ms-2 badge bg-light text-dark border border-light-subtle">{{ trip.get_status_display }}</span>
+                            </div>
+
+                            <div class="mt-auto pt-2 border-top">
+                                <a href="{% url 'trip_detail' trip.id %}"
+                                    class="btn btn-sm btn-link text-primary fw-bold text-decoration-none p-0">
+                                    View Details <i class="bi bi-chevron-right small"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if other_trips %}
+        <div class="card border-0 shadow-sm rounded-4 mt-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-calendar-check text-primary me-2"></i>Other Assignments Today
+                    </h5>
+                    <span class="badge bg-light text-dark border px-3 py-1 rounded-pill small fw-bold">
+                        {{ other_trips|length }} More
+                    </span>
+                </div>
+
+                <div class="row g-3">
+                    {% for trip in other_trips %}
+                    <div class="col-md-6">
+                        <div
+                            class="bg-light p-3 rounded-4 border-start border-4 {% if trip.is_special %}border-warning{% else %}border-primary{% endif %} h-100 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold text-dark mb-0">
+                                    {% if trip.schedule %}
+                                    {{ trip.schedule.route.name }}
+                                    {% else %}
+                                    {{ trip.source }} <i class="bi bi-arrow-right mx-1 text-muted"></i> {{ trip.destination }}
+                                    {% endif %}
+                                </h6>
+                                {% if trip.is_special %}
+                                <span class="badge bg-warning text-dark x-small"
+                                    style="font-size: 0.65rem;">SPECIAL</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-clock me-1"></i> Departure:
+                                <strong>
+                                    {% if trip.schedule %}
+                                    {{ trip.schedule.departure_time|time:"h:i A" }}
+                                    {% else %}
+                                    {{ trip.departure_time|time:"h:i A"|default:"TBA" }}
+                                    {% endif %}
+                                </strong>
+                                <span class="ms-2 badge bg-white text-dark border border-light-subtle">{{ trip.get_status_display }}</span>
+                            </div>
+
+                            <div class="mt-auto pt-2 border-top">
+                                <a href="{% url 'trip_detail' trip.id %}"
+                                    class="btn btn-sm btn-link text-primary fw-bold text-decoration-none p-0">
+                                    View Details <i class="bi bi-chevron-right small"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const btn = document.getElementById('startTripBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    const BUS_ID = btn ? btn.getAttribute('data-bus-id') : null;
+    const TRIP_ID = btn ? btn.getAttribute('data-trip-id') : null;
+    const initialStatus = btn ? btn.getAttribute('data-initial-status') : '';
+
+    let watchId = null;
+    let isTracking = false;
+    let map = null;
+    let marker = null;
+
+    function startGPS() {
+        if (navigator.geolocation) {
+            watchId = navigator.geolocation.watchPosition(sendPosition, handleError, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
+
+            document.getElementById('mapSection').style.display = 'block';
+            document.getElementById('preview-map').style.display = 'block';
+            initMap();
+
+            if (statusMsg) statusMsg.textContent = "GPS Tracking Active...";
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
+
+    if (btn) {
+        if (initialStatus === 'RUNNING') {
+            btn.textContent = "Stop Trip / GPS";
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-danger');
+            isTracking = true;
+            startGPS(); // Auto-start if already running
+        } else {
+            btn.textContent = "Start Trip / GPS";
+        }
+    }
+
+    function updateTripStatus(status) {
+        if (!TRIP_ID) return;
+        const formData = new FormData();
+        formData.append('status', status);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch(`/operations/trips/${TRIP_ID}/toggle-status/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const badge = document.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = data.new_status;
+                        if (status === 'RUNNING') {
+                            badge.className = 'badge bg-success text-white';
+                        } else if (status === 'COMPLETED') {
+                            badge.className = 'badge bg-secondary text-white';
+                        }
+                    }
+                }
+            }).catch(err => console.error("Error updating trip status", err));
+    }
+
+    function toggleTracking() {
+        if (!BUS_ID) {
+            alert("No bus assigned!");
+            return;
+        }
+
+        if (!isTracking) {
+            isTracking = true;
+            if (btn) {
+                btn.textContent = "Stop Trip / GPS";
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-danger');
+            }
+            startGPS();
+            updateTripStatus('RUNNING');
+        } else {
+            isTracking = false;
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            if (btn) {
+                btn.textContent = "Start Trip / GPS";
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-success');
+            }
+            if (statusMsg) statusMsg.textContent = "GPS Tracking Stopped.";
+            updateTripStatus('COMPLETED');
+
+            document.getElementById('mapSection').style.display = 'none';
+        }
+    }
+
+    function initMap() {
+        if (!map) {
+            map = L.map('preview-map').setView([23.8103, 90.4125], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
+        setTimeout(() => map.invalidateSize(), 500);
+    }
+
+    function sendPosition(position) {
+        const { latitude, longitude } = position.coords;
+
+        if (map) {
+            if (!marker) {
+                marker = L.marker([latitude, longitude]).addTo(map);
+            } else {
+                marker.setLatLng([latitude, longitude]);
+            }
+            map.panTo([latitude, longitude]);
+        }
+
+        const data = {
+            bus_id: BUS_ID,
+            latitude: latitude,
+            longitude: longitude,
+            speed: position.coords.speed
+        };
+
+        fetch('{% url "update_location" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        }).then(response => {
+            console.log("GPS Sent", data);
+        }).catch(error => {
+            console.error("Error sending GPS", error);
+        });
+    }
+
+    function handleError(error) {
+        console.warn(`ERROR(${error.code}): ${error.message}`);
+        if (statusMsg) statusMsg.textContent = `GPS Error: ${error.message}`;
+    }
+</script>
+{% endblock %}

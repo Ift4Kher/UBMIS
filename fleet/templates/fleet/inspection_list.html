@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-teal: #0d6efd;
+        --bg-faded: #f8fafc;
+        --success-soft: #ecfdf5;
+        --danger-soft: #fef2f2;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .bg-faded {
+        background: var(--bg-faded);
+    }
+
+    .bg-success-soft {
+        background: var(--success-soft);
+    }
+
+    .bg-danger-soft {
+        background: var(--danger-soft);
+    }
+
+    .text-teal {
+        color: var(--primary-teal);
+    }
+</style>
+
+<div class="py-4 main-content-wrapper">
+    <!-- Mobile Sidebar -->
+    {% if user.is_superuser %}
+    {% include 'core/_mobile_offcanvas_sidebar.html' %}
+    {% else %}
+    {% include 'core/_mobile_inspector_offcanvas.html' %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sticky-top" style="top: 2rem;">
+                {% if user.is_superuser %}
+                {% include 'core/_admin_sidebar.html' %}
+                {% else %}
+                {% include 'core/_inspector_sidebar.html' %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="{% if user.is_superuser %}#sidebarMenu{% else %}#inspectorSidebarMenu{% endif %}">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <div>
+                        <h2 class="fw-800 mb-0 h3" style="color: var(--primary-teal); letter-spacing: -0.5px;">
+                            Inspection History</h2>
+                        <p class="text-muted small mb-0">Centralized log of all fleet safety evaluations</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-faded text-muted small text-uppercase fw-bold">
+                            <tr>
+                                <th class="ps-4 py-3">Bus Assignment</th>
+                                <th class="py-3">Location & Time</th>
+                                <th class="py-3 text-center">Status</th>
+                                <th class="py-3">Inspector Agent</th>
+                                <th class="text-end pe-4 py-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in inspections %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-800 text-primary mb-0">{{ log.bus.bus_number }}</div>
+                                    <small class="text-muted">{{ log.bus.license_plate }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ log.location }}</div>
+                                    <small class="text-muted">
+                                        {{ log.inspection_date|date:"h:i A" }} • {{ log.inspection_date|date:"M d, Y" }}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    {% if log.overall_status == 'PASS' %}
+                                    <span
+                                        class="badge bg-success-soft text-success border border-success px-4 py-2 rounded-pill fw-800">
+                                        <i class="bi bi-check-circle-fill me-1"></i> {{ log.score_percentage }}%
+                                    </span>
+                                    {% else %}
+                                    <span
+                                        class="badge bg-danger-soft text-danger border border-danger px-4 py-2 rounded-pill fw-800">
+                                        <i class="bi bi-exclamation-circle-fill me-1"></i> {{ log.score_percentage }}%
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ log.get_inspector_name }}</div>
+                                    <small class="text-muted">ID: #INS-{{ log.inspector.id|stringformat:"03d" }}</small>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="dropdown">
+                                        <button class="btn btn-link text-secondary p-0" type="button"
+                                            data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                            <li><a class="dropdown-item py-2"
+                                                    href="{% url 'inspection_report_detail' log.pk %}"><i
+                                                        class="bi bi-file-earmark-text me-2 text-primary"></i> View
+                                                    Report</a></li>
+                                            {% if user.is_superuser %}
+                                            <li><a class="dropdown-item py-2 text-danger"
+                                                    href="{% url 'inspection_delete' log.pk %}"><i
+                                                        class="bi bi-trash3 me-2"></i> Delete Record</a></li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <div class="mb-3 text-muted" style="font-size: 3rem;">
+                                        <i class="bi bi-journal-x"></i>
+                                    </div>
+                                    <h5 class="fw-bold">No Records Found</h5>
+                                    <p class="text-muted small">The inspection database is currently empty.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}

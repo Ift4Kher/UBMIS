@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .inspection-section {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        border-left: 5px solid #0d6efd;
+    }
+
+    .section-header {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #eee;
+        border-top-right-radius: 12px;
+    }
+
+    .section-title {
+        margin: 0;
+        font-weight: 700;
+        color: #333;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .inspection-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .inspection-grid {
+            grid-template-columns: 1fr;
+            padding: 1rem;
+            gap: 1rem;
+        }
+    }
+
+    .inspection-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        background: #fdfdfd;
+        border: 1px solid #f1f1f1;
+    }
+
+    @media (max-width: 575.98px) {
+        .inspection-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .pass-fail-toggle {
+            width: 100%;
+        }
+
+        .pass-fail-toggle label {
+            flex: 1;
+            text-align: center;
+        }
+    }
+
+    .item-label {
+        font-weight: 500;
+        color: #444;
+    }
+
+    .pass-fail-toggle {
+        display: flex;
+        gap: 5px;
+        background: #eee;
+        padding: 4px;
+        border-radius: 30px;
+        position: relative;
+    }
+
+    .pass-fail-toggle input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+    }
+
+    .pass-fail-toggle label {
+        display: block;
+        padding: 8px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin: 0;
+        color: #666;
+        transition: all 0.2s;
+        position: relative;
+        z-index: 50;
+    }
+
+    .toggle-pass:checked~label[class*="pass-label"] {
+        background: #198754;
+        color: white;
+        box-shadow: 0 2px 5px rgba(25, 135, 84, 0.3);
+    }
+
+    .toggle-fail:checked~label[class*="fail-label"] {
+        background: #dc3545;
+        color: white;
+        box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+    }
+
+    .critical-badge {
+        font-size: 0.65rem;
+        background: #ffc107;
+        color: #000;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 10px;
+        font-weight: 800;
+    }
+
+    .status-badge {
+        font-size: 1.2rem;
+        padding: 10px 15px;
+        border-radius: 10px;
+        display: block;
+        text-align: center;
+        font-weight: 800;
+        margin-top: 10px;
+        white-space: nowrap;
+    }
+
+    .status-pass {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .status-fail {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .form-footer {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-top: 2rem;
+        /* Removed large margin-bottom to work with sticky bar */
+    }
+
+    @media (max-width: 767.98px) {
+        .form-footer {
+            flex-direction: column-reverse;
+            padding: 1.5rem;
+        }
+
+        .form-footer .btn {
+            width: 100%;
+        }
+    }
+
+    /* Mobile Sticky Summary Bar */
+    .mobile-floating-summary {
+        position: -webkit-sticky;
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
+        padding: 10px 12px;
+        z-index: 1000;
+        display: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        margin: 0 -0.75rem;
+        /* Match container padding for full width appearing */
+    }
+
+    @media (max-width: 991.98px) {
+        .mobile-floating-summary {
+            display: block;
+        }
+    }
+
+    .progress-compact {
+        height: 6px !important;
+        margin-bottom: 6px;
+        border-radius: 10px;
+    }
+
+    .summary-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        color: #888;
+        display: block;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .summary-value {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #333;
+        display: block;
+        line-height: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 main-content-wrapper">
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Bus Inspection Form</h2>
+                    <p class="text-muted"><i class="bi bi-shield-check me-2"></i>Official Inspection Interface</p>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" id="inspection-form" novalidate
+                onsubmit="const btn=document.getElementById('submit-btn'); btn.disabled=true; btn.innerHTML='Processing Submission...';">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger shadow-sm rounded-4 mb-4 border-0 p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-exclamation-octagon-fill fs-3 me-3"></i>
+                        <h5 class="fw-bold mb-0">Action Required: Form contains errors</h5>
+                    </div>
+                    <ul class="mb-0">
+                        {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li class="mb-1"><strong>{{ field|title }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Section: Context -->
+                <div class="inspection-section">
+                    <div class="section-header">
+                        <h5 class="section-title">Context</h5>
+                    </div>
+                    <div class="px-3 px-md-4 py-3">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Location</label>
+                                {{ form.location }}
+                                {% if form.location.errors %}
+                                <div class="text-danger small mt-1">{{ form.location.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Select Bus</label>
+                                {{ form.bus }}
+                                {% if form.bus.errors %}
+                                <div class="text-danger small mt-1">{{ form.bus.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Evaluation -->
+                <div class="inspection-section">
+                    <div class="section-header">
+                        <h5 class="section-title">Safety Inspection Matrix</h5>
+                    </div>
+                    <div class="inspection-grid">
+                        {% for item in evaluation_items %}
+                        <div class="inspection-item-wrapper" data-field-name="{{ item.name }}">
+                            <div class="inspection-item">
+                                <div class="label-container">
+                                    <span class="item-label">{{ item.label }}</span>
+                                </div>
+                                <div class="pass-fail-toggle">
+                                    <input type="radio" name="{{ item.name }}" id="id_{{ item.name }}_p" value="True"
+                                        class="toggle-pass" data-init="{{ item.value|default:'' }}">
+                                    <label for="id_{{ item.name }}_p" class="pass-label">PASS</label>
+                                    <input type="radio" name="{{ item.name }}" id="id_{{ item.name }}_f" value="False"
+                                        class="toggle-fail" data-init="{{ item.value|default:'' }}">
+                                    <label for="id_{{ item.name }}_f" class="fail-label">FAIL</label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Section: Finalization -->
+                <div class="inspection-section">
+                    <div class="section-header">
+                        <h5 class="section-title">Finalization</h5>
+                    </div>
+                    <div class="p-3 p-md-4">
+                        <div class="row g-4">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">Remarks <span id="req-remarks"
+                                        class="text-danger d-none">* Required</span></label>
+                                {{ form.remarks }}
+                                {% if form.remarks.errors %}
+                                <div class="text-danger small mt-1">{{ form.remarks.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Evidence Photo <span id="req-photo"
+                                        class="text-danger d-none">* Required</span></label>
+                                {{ form.photo_evidence }}
+                                {% if form.photo_evidence.errors %}
+                                <div class="text-danger small mt-1">{{ form.photo_evidence.errors|first }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Next Inspection Date (Optional)</label>
+                                {{ form.next_inspection_date }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-footer d-flex justify-content-center gap-3">
+                    <a href="{% url 'inspection_list' %}" class="btn btn-outline-secondary btn-lg px-5">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold" id="submit-btn" disabled>
+                        Submit Inspection Report
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="sticky-top" style="top: 2rem;">
+                <div class="card border-0 shadow-sm rounded-4 text-center">
+                    <div class="card-header bg-dark text-white py-3 fw-bold">INSPECTION SUMMARY</div>
+                    <div class="card-body p-4">
+                        <div id="overall-badge" class="status-badge bg-secondary text-white">READY...</div>
+                        <div class="mt-4 text-start small">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Passed:</span><span id="pass-count" class="fw-bold">0</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Failed:</span><span id="fail-count" class="fw-bold">0</span>
+                            </div>
+                            <div class="progress mt-3"
+                                style="height: 10px; background: #eee; border-radius: 5px; overflow: hidden;">
+                                <div id="progress-bar" class="progress-bar bg-info" role="progressbar"
+                                    style="width: 0%; height: 100%; transition: width 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile-Only Floating Summary -->
+<div class="mobile-floating-summary">
+    <div class="container-fluid px-1">
+        <div class="row align-items-center g-0">
+            <div class="col-8 pe-2">
+                <div class="progress progress-compact" style="background: #f0f0f0;">
+                    <div id="mobile-progress-bar" class="progress-bar bg-primary"
+                        style="width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                </div>
+                <div class="d-flex gap-3">
+                    <div>
+                        <span class="summary-label">Progress</span>
+                        <span class="summary-value" id="mobile-progress-text">0%</span>
+                    </div>
+                    <div>
+                        <span class="summary-label">Score</span>
+                        <span class="summary-value" id="mobile-score-text">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div id="mobile-overall-badge" class="badge w-100 py-2 rounded-pill bg-secondary shadow-sm"
+                    style="font-size: 0.7rem; letter-spacing: 0.5px;">READY...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("Inspection form script initialized");
+        try {
+            const criticalFields = JSON.parse('{{ critical_fields_json|safe|escapejs }}' || '[]');
+            const fieldErrors = JSON.parse('{{ field_errors_json|safe|escapejs }}' || '{}');
+
+            const allRadios = document.querySelectorAll('input[type="radio"]');
+            const submitBtn = document.getElementById('submit-btn');
+
+            criticalFields.forEach(name => {
+                const wrapper = document.querySelector(`[data-field-name="${name}"]`);
+                if (wrapper) {
+                    const lc = wrapper.querySelector('.label-container');
+                    if (lc && !lc.querySelector('.critical-badge')) {
+                        const b = document.createElement('span');
+                        b.className = 'critical-badge';
+                        b.textContent = 'CRITICAL';
+                        lc.appendChild(b);
+                    }
+                    wrapper.querySelectorAll('input[type="radio"]').forEach(r => r.dataset.critical = "true");
+                }
+            });
+
+            allRadios.forEach(radio => {
+                const val = radio.getAttribute('data-init');
+                if (radio.value === "True" && (val === "True" || val === "" || val === "None")) {
+                    radio.checked = true;
+                } else if (radio.value === "False" && val === "False") {
+                    radio.checked = true;
+                }
+            });
+
+            function updateUI() {
+                let pass = 0, fail = 0, critical = false;
+                const wrappers = document.querySelectorAll('.inspection-item-wrapper');
+                const total = wrappers.length || 1;
+
+                wrappers.forEach(w => {
+                    const name = w.dataset.fieldName;
+                    const rPass = w.querySelector(`input[name="${name}"][value="True"]`);
+                    const rFail = w.querySelector(`input[name="${name}"][value="False"]`);
+
+                    if (rPass && rPass.checked) {
+                        pass++;
+                    } else if (rFail && rFail.checked) {
+                        fail++;
+                        if (rFail.dataset.critical === "true") critical = true;
+                    }
+                });
+
+                const answered = pass + fail;
+                const busSelect = document.querySelector('[name="bus"]');
+                const locInput = document.querySelector('[name="location"]');
+                const rmkInput = document.querySelector('[name="remarks"]');
+                const phoInput = document.querySelector('[name="photo_evidence"]');
+
+                const contextOk = !!(busSelect?.value && locInput?.value?.trim());
+                const gridOk = (answered === wrappers.length);
+
+                let evidenceOk = true;
+                if (fail > 0) {
+                    evidenceOk = !!(rmkInput?.value?.trim() && (phoInput?.files?.length > 0 || phoInput?.dataset.existing === "true"));
+                    document.getElementById('req-remarks')?.classList.remove('d-none');
+                    document.getElementById('req-photo')?.classList.remove('d-none');
+                } else {
+                    document.getElementById('req-remarks')?.classList.add('d-none');
+                    document.getElementById('req-photo')?.classList.add('d-none');
+                }
+
+                const scorePct = Math.round((pass / total) * 100);
+                const progressPct = Math.round((answered / wrappers.length) * 100);
+
+                // Update Desktop UI
+                if (document.getElementById('pass-count')) document.getElementById('pass-count').textContent = pass;
+                if (document.getElementById('fail-count')) document.getElementById('fail-count').textContent = fail;
+                const desktopProgress = document.getElementById('progress-bar');
+                if (desktopProgress) {
+                    desktopProgress.style.width = progressPct + '%';
+                    desktopProgress.textContent = progressPct > 10 ? progressPct + '%' : '';
+                }
+
+                // Update Mobile UI
+                const mobileProgress = document.getElementById('mobile-progress-bar');
+                if (mobileProgress) mobileProgress.style.width = progressPct + '%';
+                if (document.getElementById('mobile-progress-text')) document.getElementById('mobile-progress-text').textContent = progressPct + '%';
+                if (document.getElementById('mobile-score-text')) document.getElementById('mobile-score-text').textContent = scorePct + '%';
+
+                function setStatus(badgeEl, isMobile = false) {
+                    if (!badgeEl) return;
+                    if (!contextOk || !gridOk || !evidenceOk) {
+                        badgeEl.className = isMobile ? 'badge w-100 py-2 rounded-pill bg-secondary text-white' : 'status-badge bg-secondary text-white';
+                        if (!contextOk) badgeEl.textContent = 'CHECK CONTEXT';
+                        else if (!gridOk) badgeEl.textContent = 'INCOMPLETE';
+                        else badgeEl.textContent = 'PHOTO REQ.';
+                        submitBtn.disabled = true;
+                    } else {
+                        badgeEl.textContent = 'SCORE: ' + scorePct + '%';
+                        if (fail > 0 || critical) {
+                            badgeEl.className = isMobile ? 'badge w-100 py-2 rounded-pill bg-danger text-white' : 'status-badge status-fail';
+                        } else {
+                            badgeEl.className = isMobile ? 'badge w-100 py-2 rounded-pill bg-success text-white' : 'status-badge status-pass';
+                        }
+                        submitBtn.disabled = false;
+                    }
+                }
+
+                setStatus(document.getElementById('overall-badge'));
+                setStatus(document.getElementById('mobile-overall-badge'), true);
+            }
+
+            allRadios.forEach(r => r.addEventListener('change', updateUI));
+            const inputsToWatch = ['bus', 'location', 'remarks', 'photo_evidence'];
+            inputsToWatch.forEach(n => {
+                const el = document.querySelector(`[name="${n}"]`);
+                if (el) {
+                    el.addEventListener('input', updateUI);
+                    el.addEventListener('change', updateUI);
+                }
+            });
+
+            updateUI();
+        } catch (e) {
+            console.error('JS initialization error:', e);
+        }
+    });
+</script>
+{% endblock %}

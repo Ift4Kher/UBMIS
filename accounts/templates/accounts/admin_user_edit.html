@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Mobile Sidebar -->
+    {% include 'core/_mobile_offcanvas_sidebar.html' %}
+
+    <div class="row">
+        <!-- Sidebar Column -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                {% include 'core/_admin_sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Content Column -->
+        <div class="col-lg-10 col-md-12">
+            <div class="mb-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <a href="{% url 'admin_user_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="bi bi-arrow-left me-1"></i> Back to User List
+                    </a>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white py-3 border-0">
+                    <h5 class="fw-bold mb-0">Edit User: {{ user_to_edit.username }}</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.username|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.id_number|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.role|as_crispy_field }}
+                            </div>
+                            <div class="col-12 mt-3">
+                                <div class="p-3 bg-light rounded-3 d-flex gap-4">
+                                    {{ form.is_active|as_crispy_field }}
+                                    {{ form.is_staff|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold">Save
+                                Changes</button>
+                            <a href="{% url 'admin_user_list' %}" class="btn btn-light px-4 rounded-pill">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action">Back to Dashboard</a>
+            <a href="{% url 'submit_complaint' %}"
+                class="list-group-item list-group-item-action list-group-item-danger"><i class="bi bi-plus-lg"></i> New
+                Composition</a>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <h2 class="mb-4">My Messages</h2>
+
+        <div class="list-group shadow-sm">
+            {% for complaint in complaints %}
+            <a href="{% url 'complaint_chat' complaint.pk %}" class="list-group-item list-group-item-action py-3"
+                aria-current="true">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1 fw-bold">{{ complaint.subject }}</h5>
+                    <small class="text-muted">{{ complaint.updated_at|date:"M d, Y" }}</small>
+                </div>
+                <p class="mb-1 text-muted">
+                    {% if complaint.messages.last %}
+                    {{ complaint.messages.last.message|truncatechars:100 }}
+                    {% else %}
+                    {{ complaint.message|truncatechars:100 }}
+                    {% endif %}
+                </p>
+                <small>
+                    Status:
+                    <span
+                        class="badge {% if complaint.status == 'PENDING' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                        {{ complaint.status }}
+                    </span>
+                </small>
+            </a>
+            {% empty %}
+            <div class="text-center py-5">
+                <p class="text-muted">You haven't started any conversations yet.</p>
+                <a href="{% url 'submit_complaint' %}" class="btn btn-primary">Start New Chat</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

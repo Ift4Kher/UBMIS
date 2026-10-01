@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">Confirm Trip Deletion</h4>
+            </div>
+            <div class="card-body py-4 text-center">
+                <i class="bi bi-exclamation-triangle text-danger display-1 mb-3"></i>
+                <p class="fs-5 text-center">
+                    Are you sure you want to delete the trip from <br>
+                    <span class="fw-bold">
+                        {% if trip.schedule %}
+                        {{ trip.schedule.route.source }}
+                        {% else %}
+                        {{ trip.source|default:"Unknown Source" }}
+                        {% endif %}
+                    </span>
+                    <br>to<br>
+                    <span class="fw-bold">
+                        {% if trip.schedule %}
+                        {{ trip.schedule.route.destination }}
+                        {% else %}
+                        {{ trip.destination|default:"Unknown Destination" }}
+                        {% endif %}
+                    </span>?
+                </p>
+                <p class="text-muted small">This action cannot be undone. All bookings associated with this trip will
+                    also be affected.</p>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'trip_list' %}" class="btn btn-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-danger px-4">Delete Permanently</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

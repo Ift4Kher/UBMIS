@@ -1,0 +1,13 @@
+<div class="check-item">
+    <span class="small">
+        {{ label }}
+        {% if critical %}<span class="text-danger fw-bold" style="font-size: 0.6rem;">[CRITICAL]</span>{% endif %}
+    </span>
+    <span>
+        {% if status %}
+        <span class="badge-pass small">PASS</span>
+        {% else %}
+        <span class="badge-fail small">FAIL</span>
+        {% endif %}
+    </span>
+</div>

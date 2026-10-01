@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container-fluid py-4 main-content-wrapper">
+    <!-- Mobile Sidebar -->
+    {% include 'core/_mobile_offcanvas_sidebar.html' %}
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sticky-top" style="top: 20px;">
+                {% include 'core/_admin_sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <h2 class="mb-0">Site Configuration</h2>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pt-3 ps-3 pe-3 pb-0">
+                    <ul class="nav nav-tabs card-header-tabs" id="settingTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold" id="general-tab" data-bs-toggle="tab"
+                                data-bs-target="#general" type="button" role="tab" aria-controls="general"
+                                aria-selected="true">
+                                <i class="bi bi-gear-fill me-2"></i>General
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold" id="slider-tab" data-bs-toggle="tab"
+                                data-bs-target="#slider" type="button" role="tab" aria-controls="slider"
+                                aria-selected="false">
+                                <i class="bi bi-images me-2"></i>Home Slider
+                            </button>
+                        </li>
+                        </button>
+                        </li>
+
+                    </ul>
+                </div>
+
+                <div class="card-body">
+                    <div class="tab-content" id="settingTabsContent">
+
+                        <!-- General Settings Tab -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel"
+                            aria-labelledby="general-tab">
+                            <h5 class="mb-3 text-secondary border-bottom pb-2">General Configuration</h5>
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+
+
+
+                                <h5 class="mb-3 text-secondary border-bottom pb-2">Authentication Pages</h5>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Login/Register Split Image</label>
+                                    {% if form.instance.auth_image %}
+                                    <div class="mb-2">
+                                        <img src="{{ form.instance.auth_image.url }}" alt="Current Auth Image"
+                                            class="img-thumbnail" style="max-height: 200px;">
+                                    </div>
+                                    {% endif %}
+                                    {{ form.auth_image|as_crispy_field }}
+                                    <div class="form-text text-muted">This image will appear on the left side of the
+                                        login
+                                        and register pages. Darker, artistic images work best.</div>
+                                </div>
+
+                                <hr>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Site Logo (Optional)</label>
+                                    {% if form.instance.site_logo %}
+                                    <div class="mb-2">
+                                        <img src="{{ form.instance.site_logo.url }}" alt="Current Logo"
+                                            class="img-thumbnail" style="max-height: 80px;">
+                                    </div>
+                                    {% endif %}
+                                    {{ form.site_logo|as_crispy_field }}
+                                    <div class="form-text text-muted">This logo will overlay the top-left corner of the
+                                        auth
+                                        image.</div>
+                                </div>
+
+                                <hr>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Homepage Video</label>
+                                    {% if form.instance.homepage_video %}
+                                    <div class="mb-2">
+                                        <video width="320" height="240" controls class="rounded shadow-sm">
+                                            <source src="{{ form.instance.homepage_video.url }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                    {% endif %}
+                                    {{ form.homepage_video|as_crispy_field }}
+                                    <div class="form-text text-muted">This video will be displayed on the homepage under
+                                        the
+                                        Routes section. It will play automatically on loop.</div>
+                                </div>
+
+                                <div class="d-grid col-md-4">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+
+
+
+                        <!-- Slider Images Tab -->
+                        <div class="tab-pane fade" id="slider" role="tabpanel" aria-labelledby="slider-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="text-secondary mb-0">Homepage Slider</h5>
+                                <a href="{% url 'slider_image_add' %}" class="btn btn-sm btn-success"><i
+                                        class="bi bi-plus-lg"></i> Add New Image</a>
+                            </div>
+
+                            <div class="row">
+                                {% for image in slider_images %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100 border">
+                                        <div style="height: 150px; overflow: hidden; background-color: #eee;">
+                                            <img src="{{ image.image.url }}" class="card-img-top h-100 w-100"
+                                                alt="Slider" style="object-fit: cover;">
+                                        </div>
+                                        <div class="card-body p-2">
+                                            {% if image.caption %}
+                                            <p class="card-text small fw-bold mb-1 text-truncate">{{ image.caption }}
+                                            </p>
+                                            {% else %}
+                                            <p class="card-text small text-muted mb-1">No caption</p>
+                                            {% endif %}
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span
+                                                    class="badge {% if image.is_active %}bg-success{% else %}bg-secondary{% endif %} rounded-pill"
+                                                    style="font-size: 0.7rem;">
+                                                    {% if image.is_active %}Active{% else %}Inactive{% endif %}
+                                                </span>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-link text-secondary p-0" type="button"
+                                                        data-bs-toggle="dropdown" data-bs-boundary="viewport"
+                                                        aria-expanded="false">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul
+                                                        class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                                        <li>
+                                                            <form method="post"
+                                                                action="{% url 'slider_image_delete' image.pk %}"
+                                                                onsubmit="return confirm('Delete this image?');"
+                                                                class="d-inline">
+                                                                {% csrf_token %}
+                                                                <button type="submit"
+                                                                    class="dropdown-item py-2 text-danger">
+                                                                    <i class="bi bi-trash3 me-2"></i> Delete Image
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12 text-center py-4 bg-light rounded">
+                                    <p class="text-muted mb-0">No slider images found.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}

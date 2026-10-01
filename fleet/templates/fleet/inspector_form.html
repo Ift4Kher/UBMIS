@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">{{ title }}</div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.name == 'password' %}
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" id="togglePassword">
+                            <label class="form-check-label small text-secondary" for="togglePassword">
+                                Show Password
+                            </label>
+                        </div>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'inspector_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('togglePassword')?.addEventListener('change', function (e) {
+        const passwordInput = document.querySelector('input[name="password"]');
+        if (passwordInput) {
+            passwordInput.type = e.target.checked ? 'text' : 'password';
+        }
+    });
+</script>
+{% endblock %}

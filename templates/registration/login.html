@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - UBMIS</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-teal: #0d6efd;
+            --accent-blue: #0d6efd;
+            --text-muted: #6c757d;
+        }
+
+        body,
+        html {
+            min-height: 100vh;
+            width: 100vw;
+            max-width: 100vw;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .auth-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('{% if site_settings.auth_image %}{{ site_settings.auth_image.url }}{% else %}https://images.unsplash.com/photo-1582139329536-e7284fece509?q=80&w=2080&auto=format&fit=crop{% endif %}') no-repeat center center;
+            background-size: cover;
+            /* filter: brightness(0.6); */
+            z-index: -1;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+            background: #fff;
+            border-radius: 2rem;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .auth-left {
+            flex: 1;
+            background: url('{% if site_settings.auth_image %}{{ site_settings.auth_image.url }}{% else %}https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=2079&auto=format&fit=crop{% endif %}');
+            background-size: cover;
+            background-position: center;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: #fff;
+            position: relative;
+        }
+
+        .auth-left .logo {
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .auth-left .content h1 {
+            font-weight: 800;
+            font-size: 2.2rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .auth-left .content p {
+            font-size: 1rem;
+            opacity: 0.8;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+
+        .auth-left .bird-icon {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 4rem;
+            opacity: 0.6;
+        }
+
+        .auth-right {
+            flex: 1;
+            padding: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-header h2 {
+            font-weight: 800;
+            font-size: 2rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #444;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            padding: 0.75rem 1rem;
+            border-radius: 0.6rem;
+            border: 1px solid #dee2e6;
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(16, 59, 65, 0.1);
+            border-color: var(--primary-teal);
+        }
+
+        .input-group-text {
+            background: transparent;
+            border-left: none;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .password-field {
+            border-right: none;
+        }
+
+        .btn-signin {
+            background-color: var(--primary-teal);
+            border: none;
+            color: #fff;
+            padding: 0.8rem;
+            font-weight: 700;
+            border-radius: 0.6rem;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .btn-signin:hover {
+            background-color: #0c2b30;
+            transform: translateY(-1px);
+        }
+
+
+        .form-check-label {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .forgot-link {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary-teal);
+            text-decoration: none;
+        }
+
+        .top-left-logo {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+            background: #fff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-left-logo img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .top-left-logo .site-name {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--primary-teal);
+            text-transform: uppercase;
+            margin-top: 0.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 991px) {
+            .auth-left {
+                display: none;
+            }
+
+            .auth-card {
+                max-width: 500px;
+                border-radius: 1.5rem;
+                margin: 20px 15px;
+                min-height: auto;
+                overflow: hidden;
+            }
+
+            .auth-right {
+                padding: 2.5rem 1.5rem;
+            }
+
+            .auth-header h2 {
+                font-size: 1.75rem;
+            }
+
+            .top-left-logo {
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                transform: none;
+                padding: 0.6rem;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                z-index: 101;
+            }
+
+            .top-left-logo img {
+                height: 30px;
+            }
+
+            .top-left-logo .site-name {
+                font-size: 0.55rem;
+                margin-top: 0.2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .auth-card {
+                margin: 20px 10px 15px;
+                border-radius: 1rem;
+                overflow: hidden;
+            }
+
+            .auth-right {
+                padding: 1.5rem 1rem;
+            }
+
+            .auth-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .auth-header p {
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-left-logo">
+        {% if site_settings.site_logo %}
+        <img src="{{ site_settings.site_logo.url }}" alt="Logo">
+        {% else %}
+        <div style="font-weight: 800; color: var(--primary-teal); font-size: 0.8rem;">LOGO</div>
+        {% endif %}
+        <div class="site-name">Eastern University</div>
+    </div>
+    <div class="auth-bg"></div>
+    <div class="auth-card">
+        <!-- Left Side: Branding -->
+        <div class="auth-left">
+            <div class="content">
+                <h1>Your Next<br>Journey<br>Awaits!</h1>
+                <p>Ensuring your commute is safe, reliable, and convenient every single day.</p>
+            </div>
+        </div>
+        <!-- Right Side: Form -->
+        <div class="auth-right">
+            <div class="auth-form-container">
+                <div class="auth-header">
+                    <h2>Welcome Back !</h2>
+                    <p>Welcome back! Please enter your details.</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger py-2 rounded-3 border-0 bg-danger-subtle text-danger small mb-4">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i> Invalid credentials.
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">University ID / Username</label>
+                        <input type="text" name="username" class="form-control" id="id_username"
+                            placeholder="Enter your ID" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" name="password" class="form-control password-field" id="id_password"
+                                placeholder="••••••••" required>
+                            <span class="input-group-text" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="remember">
+                            <label class="form-check-label" for="remember">Remember me</label>
+                        </div>
+                        <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password</a>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-signin">Sign in</button>
+                    </div>
+
+
+                    <div class="text-center mt-4">
+                        <p class="text-secondary small">Don't have an account? <a href="{% url 'register' %}"
+                                class="forgot-link">Sign up</a></p>
+                    </div>
+
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#id_password');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            const icon = this.querySelector('i');
+            icon.classList.toggle('bi-eye');
+            icon.classList.toggle('bi-eye-slash');
+        });
+    </script>
+
+</body>
+
+</html>

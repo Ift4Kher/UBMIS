@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    :root {
+        /* --primary-teal: #0c2b30; Taken from base.html */
+        --accent-gold: #c5a059;
+        --accent-gold: #c5a059;
+        --sidebar-bg: #1a1a1a;
+    }
+
+    .dashboard-card {
+        border: none;
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card {
+        position: relative;
+        padding: 1.5rem;
+    }
+
+    .stat-card i {
+        font-size: 2.5rem;
+        opacity: 0.2;
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+    }
+
+    .table-card {
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+    }
+
+    .table thead th {
+        border-bottom: none;
+        padding: 1.25rem 1rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 1.25rem 1rem;
+        border-top: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .status-badge {
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .badge-pass {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-fail {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-pending {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .inspector-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--primary-teal);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    /* Custom Blue Shades for Dashboard Cards */
+    .bg-blue-1 {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: #fff;
+    }
+
+    .bg-blue-2 {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+        /* Cyan-ish Blue */
+        color: #fff;
+    }
+
+    .bg-blue-3 {
+        background: linear-gradient(135deg, #6610f2 0%, #520dc2 100%);
+        /* Indigo-ish Blue */
+        color: #fff;
+    }
+
+    .bg-blue-4 {
+        background: linear-gradient(135deg, #052c65 0%, #021a3c 100%);
+        /* Deep Navy */
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Mobile Sidebar -->
+    {% include 'core/_mobile_offcanvas_sidebar.html' %}
+
+    <div class="row main-content-wrapper">
+        <!-- Sidebar Column -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                {% include 'core/_admin_sidebar.html' %}
+            </div>
+        </div>
+
+        <!-- Main Content Column -->
+        <div class="col-lg-10 col-md-12">
+            <div class="row align-items-center mb-4">
+                <div class="col d-flex align-items-center">
+                    <button class="btn btn-outline-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#sidebarMenu" aria-controls="sidebarMenu">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <div>
+                        <h2 class="fw-bold text-dark mb-0">Admin Dashboard</h2>
+                        <p class="text-muted mb-0">Monitoring and System Management Overview</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Quick Stats Row -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card bg-blue-1 shadow-sm">
+                        <p class="small text-white-50 mb-1">Total Fleet</p>
+                        <h3 class="fw-bold mb-0">{{ total_buses }}</h3>
+                        <i class="bi bi-truck"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card bg-blue-2 shadow-sm">
+                        <p class="small text-white-50 mb-1">Active Trips</p>
+                        <h3 class="fw-bold mb-0">{{ active_trips }}</h3>
+                        <i class="bi bi-play-circle"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card bg-blue-3 shadow-sm">
+                        <p class="small text-white-50 mb-1">Total Drivers</p>
+                        <h3 class="fw-bold mb-0">{{ total_drivers }}</h3>
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card bg-blue-4 shadow-sm">
+                        <p class="small text-white-50 mb-1">Pending Alerts</p>
+                        <h3 class="fw-bold mb-0">{{ maintenance_alerts }}</h3>
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Capacity Requests -->
+                {% if capacity_requests %}
+                <div class="col-12">
+                    <div class="dashboard-card table-card border p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Critical Capacity Requests</h5>
+                            <span class="badge bg-danger rounded-pill">{{ capacity_requests|length }} Priority</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Requested Trip</th>
+                                        <th>Wait Time</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for req in capacity_requests %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="inspector-avatar me-3">
+                                                    {{ req.user.username|slice:":1"|upper }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{
+                                                        req.user.get_full_name|default:req.user.username }}</div>
+                                                    <small class="text-muted">{{ req.user.username }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">
+                                                {% if req.trip.schedule %}
+                                                {{ req.trip.schedule.route.name }}
+                                                {% else %}
+                                                {{ req.trip.source }} to {{ req.trip.destination }}
+                                                {% endif %}
+                                            </div>
+                                            <small class="text-muted">{{ req.trip.date|date:"d M" }} at {{
+                                                req.trip.departure_time|time:"h:i A" }}</small>
+                                        </td>
+                                        <td><span class="text-danger fw-bold"><i class="bi bi-clock me-1"></i>{{
+                                                req.created_at|timesince }}</span></td>
+                                        <td class="text-end">
+                                            <a href="{% url 'resolve_capacity_request' req.id %}"
+                                                class="btn btn-sm btn-outline-success rounded-pill px-3">Resolve</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% include 'core/_management_footer.html' %}
+{% endblock %}

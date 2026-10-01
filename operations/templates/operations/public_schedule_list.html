@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary"><i class="bi bi-calendar-event"></i> All Transport Schedules</h2>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to
+                    Home</a>
+            </div>
+
+            <div class="table-responsive shadow-sm rounded-3">
+                <table class="table table-hover align-middle mb-0" style="background-color: #fff;">
+                    <thead class="bg-light text-secondary small text-uppercase">
+                        <tr>
+                            <th scope="col" class="py-3 ps-4">SI No</th>
+                            <th scope="col" class="py-3">Route</th>
+                            <th scope="col" class="py-3">Type</th>
+                            <th scope="col" class="py-3">For</th>
+                            <th scope="col" class="py-3">Departure</th>
+                            <th scope="col" class="py-3">Leaving</th>
+                            <th scope="col" class="py-3">Vehicles</th>
+                            <th scope="col" class="py-3 text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for schedule in schedules %}
+                        <tr class="{% if forloop.counter|divisibleby:2 %}bg-light bg-opacity-50{% endif %}">
+                            <td class="ps-4 fw-bold text-muted">{{ forloop.counter }}</td>
+                            <td>
+                                <div class="fw-bold text-dark">{{ schedule.route.name }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info bg-opacity-10 text-info">
+                                    {% if schedule.route_type == 'SHUTTLE' %}Shuttle{% else %}Regular{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if schedule.bus %}
+                                {% if schedule.bus.bus_type == 'FACULTY' %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary">Faculty</span>
+                                {% else %}
+                                <span class="badge bg-success bg-opacity-10 text-success">Student</span>
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-semibold text-dark">{{ schedule.departure_time|time:"h:i A" }}</td>
+                            <td class="fw-semibold text-dark">
+                                {% if schedule.return_time %}
+                                {{ schedule.return_time|time:"h:i A" }}
+                                {% else %}
+                                <span class="text-muted">--</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                    {{ schedule.vehicle_count }} Bus{{ schedule.vehicle_count|pluralize:"es" }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                {% if schedule.next_trip %}
+                                {% if schedule.route_type == 'SHUTTLE' %}
+                                <!-- Shuttle Logic -->
+                                {% if shuttle_booking_is_active %}
+                                <a href="{% url 'book_seat' schedule.next_trip.id %}"
+                                    class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">Book Seat</a>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border px-3">Inactive</span>
+                                {% endif %}
+                                {% else %}
+                                <!-- Regular Logic -->
+                                {% if booking_is_active %}
+                                <a href="{% url 'book_seat' schedule.next_trip.id %}"
+                                    class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">Book Seat</a>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border px-3">Inactive</span>
+                                {% endif %}
+                                {% endif %}
+                                {% else %}
+                                <span class="text-muted small">No trip today</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                No transport schedules available at the moment.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

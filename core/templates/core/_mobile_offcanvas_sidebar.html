@@ -1,0 +1,21 @@
+<!-- Mobile Offcanvas Sidebar -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+    <div class="offcanvas-header bg-primary text-white">
+        <h5 class="offcanvas-title fw-bold" id="sidebarMenuLabel">Menu</h5>
+        <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas"
+            aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-3 bg-light">
+        <!-- Include the existing sidebar content -->
+        {% include 'core/_admin_sidebar.html' %}
+    </div>
+</div>
+
+<style>
+    /* Adjust sidebar styles when inside offcanvas */
+    #sidebarMenu .admin-sidebar-nav {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+    }
+</style>
